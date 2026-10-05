@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Terminal wallpaper picker for X11/BSPWM.
+# Requires fzf, chafa, feh, and notify-send. Matugen is optional.
+
+for cmd in fzf chafa feh notify-send; do
+    command -v "$cmd" >/dev/null 2>&1 || { echo "error: $cmd not found." >&2; exit 1; }
+done
+
+wall_dir="${WALLFINDER_DIR:-$HOME/Wallpapers}"
+state_dir="$HOME/.local/state/wallfinder"
+mkdir -p "$state_dir"
+
+if [[ ! -d "$wall_dir" ]]; then
+    echo "error: wallpaper directory $wall_dir not found." >&2
+    exit 1
+fi
+
+while true; do
+    img_selection=$(find "$wall_dir" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \) -print | \
+        fzf --prompt="select wallpaper > " \
+            --layout=reverse --border \
+            --color="prompt:#cccccc,pointer:#cccccc,marker:#cccccc,info:#cccccc,hl:#cccccc,hl+:#cccccc" \
+            --preview='chafa --size ${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES} -- {}' \
+            --preview-window=right:50%:wrap \
+            --header="enter to apply | esc/ctrl-c to exit")
+    result=$?
+    [[ $result -ne 0 || -z "$img_selection" ]] && exit 0
+
+    if ! feh --no-fehbg --bg-fill "$img_selection"; then
+        notify-send "Wallpaper failed" "Could not apply $(basename "$img_selection")."
+        continue
+    fi
+
+    printf '%s\n' "$img_selection" > "$state_dir/last-wallpaper"
+    if command -v matugen >/dev/null 2>&1; then
+        if palette_json=$(matugen image "$img_selection" --mode dark --type scheme-fidelity --source-color-index 0 --fallback-color "#ffffff" --json hex); then
+            source_color=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["colors"]["source_color"]["default"]["color"])' <<< "$palette_json")
+            # Treat near-neutral dominant colors as black-and-white and use a clear white outline.
+            if python3 -c 'import sys; h=sys.argv[1].lstrip("#"); r,g,b=(int(h[i:i+2],16) for i in (0,2,4)); m=max(r,g,b); print("neutral" if (0 if m == 0 else (m-min(r,g,b))/m) <= 0.08 else "color")' "$source_color" | grep -qx neutral; then
+                sed -i 's/^outline = .*/outline = #ffffff/' "$HOME/.config/polybar/colors.ini"
+                printf '* {\n    accent: #ffffff;\n}\n' > "$HOME/.config/rofi/matugen-colors.rasi"
+            fi
+            command -v polybar-msg >/dev/null 2>&1 && polybar-msg cmd restart >/dev/null 2>&1 || true
+        else
+            echo "Matugen failed for wallpaper: $img_selection" >&2
+            notify-send "Matugen failed" "Wallpaper applied; bar outline color was not updated."
+        fi
+    fi
+    notify-send "Wallpaper applied" "$(basename "$img_selection")"
+done
