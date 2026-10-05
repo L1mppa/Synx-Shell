@@ -20,8 +20,8 @@ while true; do
         fzf --prompt="select wallpaper > " \
             --layout=reverse --border \
             --color="prompt:#cccccc,pointer:#cccccc,marker:#cccccc,info:#cccccc,hl:#cccccc,hl+:#cccccc" \
-            --preview='chafa --size ${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES} -- {}' \
-            --preview-window=right:50%:wrap \
+            --preview='chafa --format symbols --symbols sextant+block --colors full --work 9 --scale max --size ${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES} -- {}' \
+            --preview-window=right:65%:wrap \
             --header="enter to apply | esc/ctrl-c to exit")
     result=$?
     [[ $result -ne 0 || -z "$img_selection" ]] && exit 0
