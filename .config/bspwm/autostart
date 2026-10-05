@@ -1,0 +1,10 @@
+#!/bin/sh
+wallpaper_file="$HOME/.local/state/wallfinder/last-wallpaper"
+if command -v feh >/dev/null 2>&1 && [ -r "$wallpaper_file" ]; then
+    feh --bg-fill "$(cat "$wallpaper_file")" &
+fi
+
+command -v picom >/dev/null && picom -b &
+command -v dunst >/dev/null && dunst &
+command -v polybar >/dev/null && polybar main &
+command -v greenclip >/dev/null && greenclip daemon &
