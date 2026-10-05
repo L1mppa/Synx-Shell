@@ -1,10 +1,54 @@
 #!/usr/bin/env bash
 # Terminal wallpaper picker for X11/BSPWM.
-# Requires fzf, chafa, feh, and notify-send. Matugen is optional.
+# Requires fzf, chafa, feh, and notify-send. ueberzugpp gives the selector a
+# sharp, real image preview in X11 terminals such as Alacritty. Matugen is optional.
 
 for cmd in fzf chafa feh notify-send; do
     command -v "$cmd" >/dev/null 2>&1 || { echo "error: $cmd not found." >&2; exit 1; }
 done
+
+pick_wallpaper() {
+    local wall_dir="$1"
+    local result=0
+
+    if command -v ueberzugpp >/dev/null 2>&1 && [[ -n "${DISPLAY:-}" ]]; then
+        local runtime_dir pid_file pid socket
+        runtime_dir="${UEBERZUGPP_TMPDIR:-${TMPDIR:-/tmp}}"
+        mkdir -p "$runtime_dir"
+        export UEBERZUGPP_TMPDIR="$runtime_dir"
+        pid_file="$(mktemp "$runtime_dir/.wallfinder-ueberzugpp.XXXXXX")"
+        rm -f -- "$pid_file"
+
+        if ueberzugpp layer --no-stdin --silent --use-escape-codes --output x11 --pid-file "$pid_file" 2>/dev/null \
+            && [[ -s "$pid_file" ]]; then
+            pid="$(<"$pid_file")"
+            socket="$runtime_dir/ueberzugpp-$pid.socket"
+            WALLFINDER_UEBERZUG_SOCKET="$socket" fzf \
+                --prompt="select wallpaper > " \
+                --layout=reverse --border \
+                --color="prompt:#cccccc,pointer:#cccccc,marker:#cccccc,info:#cccccc,hl:#cccccc,hl+:#cccccc" \
+                --preview='ueberzugpp cmd -s "$WALLFINDER_UEBERZUG_SOCKET" -i wallfinder -a add -x "$FZF_PREVIEW_LEFT" -y "$FZF_PREVIEW_TOP" --max-width "$FZF_PREVIEW_COLUMNS" --max-height "$FZF_PREVIEW_LINES" -f {}' \
+                --preview-window=right:65%:wrap \
+                --header="enter to apply | esc/ctrl-c to exit" < <(find "$wall_dir" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \) -print)
+            result=$?
+            ueberzugpp cmd -s "$socket" -a exit >/dev/null 2>&1 || true
+            rm -f -- "$pid_file"
+            return "$result"
+        fi
+        rm -f -- "$pid_file"
+    fi
+
+    # Chafa is a text fallback for terminals where X11 image overlays are
+    # unavailable; it cannot match the raster preview above.
+    fzf \
+        --prompt="select wallpaper > " \
+        --layout=reverse --border \
+        --color="prompt:#cccccc,pointer:#cccccc,marker:#cccccc,info:#cccccc,hl:#cccccc,hl+:#cccccc" \
+        --preview='chafa --format symbols --symbols sextant+block --colors full --work 9 --scale max --size ${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES} -- {}' \
+        --preview-window=right:65%:wrap \
+        --header="enter to apply | esc/ctrl-c to exit" < <(find "$wall_dir" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \) -print)
+    return $?
+}
 
 wall_dir="${WALLFINDER_DIR:-$HOME/Wallpapers}"
 state_dir="$HOME/.local/state/wallfinder"
@@ -16,13 +60,7 @@ if [[ ! -d "$wall_dir" ]]; then
 fi
 
 while true; do
-    img_selection=$(find "$wall_dir" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \) -print | \
-        fzf --prompt="select wallpaper > " \
-            --layout=reverse --border \
-            --color="prompt:#cccccc,pointer:#cccccc,marker:#cccccc,info:#cccccc,hl:#cccccc,hl+:#cccccc" \
-            --preview='chafa --format symbols --symbols sextant+block --colors full --work 9 --scale max --size ${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES} -- {}' \
-            --preview-window=right:65%:wrap \
-            --header="enter to apply | esc/ctrl-c to exit")
+    img_selection=$(pick_wallpaper "$wall_dir")
     result=$?
     [[ $result -ne 0 || -z "$img_selection" ]] && exit 0
 
