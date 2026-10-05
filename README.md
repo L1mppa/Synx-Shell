@@ -1,4 +1,4 @@
-# Bspwm Dots
+# Synx Shell
 
 Personal bspwm desktop configuration for X11. Config files keep their usual
 paths under `.config`; the terminal wallpaper picker is included under
@@ -11,6 +11,20 @@ From the repository checkout, run:
 ```sh
 bash install.sh
 ```
+
+For a direct download installer, create a GitHub token with read access to this
+private repository. The token is read without echoing and passed to curl through
+a temporary config pipe:
+
+```sh
+read -rsp 'GitHub read token: ' GH_TOKEN; printf '\n'; export GH_TOKEN
+curl_config="header = \"Authorization: Bearer $GH_TOKEN\""
+bash -c "$(curl --config <(printf '%s\n' "$curl_config") -fsSL 'https://raw.githubusercontent.com/L1mppa/Bspwm-Dots/main/install/install.sh')"
+```
+
+The bootstrap prints the Synx Shell banner, downloads the repository snapshot to
+`~/.cache/synx-shell`, and starts the regular installer. The token needs
+repository contents read access only.
 
 The installer detects pacman, apt, dnf, zypper, xbps, or apk and installs the
 available dependencies before linking the configuration. Existing files are
