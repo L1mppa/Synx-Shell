@@ -69,6 +69,33 @@ if [[ -d "$ROOT_DIR/.local" ]]; then
     install_tree "$ROOT_DIR/.local" "$HOME/.local"
 fi
 
+clock_format_file="$HOME/.config/synx-shell/clock-format"
+polybar_config="$HOME/.config/polybar/config.ini"
+if [[ -r "$clock_format_file" && -f "$polybar_config" ]]; then
+    clock_format="$(<"$clock_format_file")"
+    if [[ "$clock_format" == 12 || "$clock_format" == 24 ]]; then
+        updated_config="$(mktemp "${TMPDIR:-/tmp}/synx-polybar.XXXXXX")"
+        awk -v format="$clock_format" '
+            /^\[module\/date\][[:space:]]*$/ { in_date=1; print; next }
+            /^\[/ { in_date=0 }
+            in_date && /^[[:space:]]*date[[:space:]]*=/ {
+                if (format == 24) print "date = %H:%M"
+                else print "date = %l:%M %P"
+                next
+            }
+            in_date && /^[[:space:]]*date-alt[[:space:]]*=/ {
+                if (format == 24) print "date-alt = %Y-%m-%d %H:%M:%S"
+                else print "date-alt = %Y-%m-%d %I:%M:%S %p"
+                next
+            }
+            { print }
+        ' "$polybar_config" > "$updated_config"
+        chmod 644 "$updated_config"
+        mv -f -- "$updated_config" "$polybar_config"
+        printf 'Set Polybar clock to %s-hour time.\n' "$clock_format"
+    fi
+fi
+
 # The GitHub file API stores uploaded files as non-executable, so set the
 # runtime bits after linking the scripts and bspwm entrypoints.
 for executable in \

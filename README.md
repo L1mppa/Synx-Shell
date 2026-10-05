@@ -22,9 +22,10 @@ curl_config="header = \"Authorization: Bearer $GH_TOKEN\""
 bash -c "$(curl --config <(printf '%s\n' "$curl_config") -fsSL 'https://raw.githubusercontent.com/L1mppa/Bspwm-Dots/main/install/install.sh')"
 ```
 
-The bootstrap prints the Synx Shell banner, downloads the repository snapshot to
-`~/.cache/synx-shell`, and starts the regular installer. The token needs
-repository contents read access only.
+The bootstrap prints the Synx Shell logo, downloads the repository snapshot to
+`~/.cache/synx-shell`, and opens a numbered menu for regional settings,
+dependencies, repository wallpapers, and final config deployment. The token
+needs repository contents read access only.
 
 The installer detects pacman, apt, dnf, zypper, xbps, or apk and installs the
 available dependencies before linking the configuration. Existing files are
@@ -50,6 +51,19 @@ bash build.sh
 ```
 
 The archive is written to `dist/`.
+
+## Installer steps
+
+The curl bootstrap offers:
+
+1. Set system language, X11 keyboard layout, timezone, and Polybar's 12/24-hour clock.
+2. Install the programs required by the desktop and wallpaper picker.
+3. Copy repository wallpapers to `~/Wallpapers` (or `WALLFINDER_DIR`).
+4. Install Synx Shell and deploy the configs.
+
+Place wallpaper images in `wallpapers/` before building or running the installer.
+Supported formats are JPG, PNG, and WebP. This repository currently has no
+wallpaper image assets.
 
 ## Wallpaper picker
 
