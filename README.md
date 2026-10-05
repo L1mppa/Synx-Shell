@@ -36,7 +36,7 @@ resolve the package transaction.
 
 The curl bootstrap offers:
 
-1. Set system language, X11 keyboard layout, timezone, and Polybar's 12/24-hour clock.
+1. Set system language, choose from the system's X11 keyboard layouts and timezones, and select Polybar's 12/24-hour clock. Search long lists with `/text`; UTC is included.
 2. Install the programs required by the desktop and wallpaper picker.
 3. Copy repository wallpapers to `~/Wallpapers` (or `WALLFINDER_DIR`).
 4. Install Synx Shell and deploy the configs.
@@ -49,8 +49,11 @@ wallpaper image assets.
 
 `wallfinder` is launched with **Super + W**. It uses fzf and ueberzugpp for a
 sharp raster preview in X11, feh to set the wallpaper, and optionally Matugen
-to generate colors. Chafa provides a text preview fallback if ueberzugpp is
-unavailable. By default it looks for images in `~/Wallpapers`; set
+to generate colors. When Matugen is installed, each wallpaper updates the
+bspwm window borders, Polybar outline, Rofi borders, Dunst notification frames,
+and wallfinder selector colors from the generated palette. Chafa provides a
+text preview fallback if ueberzugpp is unavailable. By default it looks for
+images in `~/Wallpapers`; set
 `WALLFINDER_DIR` to use a different directory. The Arch dependency installer
 includes ueberzugpp.
 

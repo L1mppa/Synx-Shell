@@ -75,21 +75,118 @@ as_root() {
     fi
 }
 
+select_setting() {
+    local prompt="$1" output_name="$2" filter='' answer start end index
+    shift 2
+    local -a values=("$@") matches=()
+    local -n selected_ref="$output_name"
+    local page_size=20 page=0 total pages
+
+    while :; do
+        matches=()
+        if [[ -n "$filter" ]]; then
+            mapfile -t matches < <(printf '%s\n' "${values[@]}" | grep -iF -- "$filter" || true)
+        else
+            matches=("${values[@]}")
+        fi
+        total=${#matches[@]}
+        pages=$(( (total + page_size - 1) / page_size ))
+        ((pages > 0)) || pages=1
+        ((page < pages)) || page=$((pages - 1))
+        start=$((page * page_size))
+        end=$((start + page_size))
+        ((end <= total)) || end=$total
+
+        printf '\n%s' "$prompt" >&2
+        [[ -n "$filter" ]] && printf ' (filter: %s)' "$filter" >&2
+        printf '\n' >&2
+        for ((index = start; index < end; index++)); do
+            printf '  %2d) %s\n' "$((index - start + 1))" "${matches[index]}" >&2
+        done
+        printf '  n) next page  p) previous page  /text) search  0) cancel\n' >&2
+        read -r -p 'Select: ' answer || return 1
+
+        case "$answer" in
+            n|N)
+                if ((page + 1 < pages)); then page=$((page + 1)); else printf 'Last page.\n' >&2; fi
+                ;;
+            p|P)
+                if ((page > 0)); then page=$((page - 1)); else printf 'First page.\n' >&2; fi
+                ;;
+            /*) filter="${answer#/}"; page=0 ;;
+            0|q|Q) return 1 ;;
+            '' ) ;;
+            *)
+                if [[ "$answer" =~ ^[0-9]+$ ]] && ((answer >= 1 && answer <= end - start)); then
+                    selected_ref="${matches[start + answer - 1]}"
+                    return 0
+                fi
+                printf 'Choose a listed number, page control, or search.\n' >&2
+                ;;
+        esac
+    done
+}
+
+get_timezones() {
+    if command -v timedatectl >/dev/null 2>&1; then
+        timedatectl list-timezones 2>/dev/null || true
+    fi
+    if [[ -d /usr/share/zoneinfo ]]; then
+        find /usr/share/zoneinfo \( -type f -o -type l \) -print 2>/dev/null \
+            | sed 's#^/usr/share/zoneinfo/##' \
+            | grep -vE '^(posix|right|SystemV)/|^(localtime|posixrules)$' || true
+    fi
+    printf 'UTC\n'
+}
+
+get_keyboard_layouts() {
+    if command -v localectl >/dev/null 2>&1; then
+        localectl list-x11-keymap-layouts --no-pager 2>/dev/null | tr ' ' '\n' || true
+    fi
+    if [[ -r /usr/share/X11/xkb/rules/base.lst ]]; then
+        awk '/^! layout/{in_layouts=1; next} /^!/{if (in_layouts) exit} in_layouts && NF {print $1}' \
+            /usr/share/X11/xkb/rules/base.lst
+    fi
+}
+
 configure_settings() {
     local language layout timezone clock current_layout current_timezone answer
+    local -a timezones=() layouts=()
     language="${LANG:-C.UTF-8}"
     current_layout="$(localectl status --no-pager 2>/dev/null | sed -n 's/^[[:space:]]*X11 Layout: *//p' | head -n 1 || true)"
     timezone="$(timedatectl show --property=Timezone --value 2>/dev/null || true)"
     [[ -n "$current_layout" ]] || current_layout=us
     [[ -n "$timezone" ]] || timezone=UTC
+    current_timezone="$timezone"
 
     printf '\nRegional settings (press Enter to keep the current value).\n'
     read -r -p "Language/locale [$language]: " answer
     [[ -n "$answer" ]] && language="$answer"
-    read -r -p "Keyboard layout [$current_layout]: " answer
-    layout="${answer:-$current_layout}"
-    read -r -p "Timezone [$timezone]: " answer
-    timezone="${answer:-$timezone}"
+    mapfile -t layouts < <(get_keyboard_layouts | sed '/^[[:space:]]*$/d' | sort -u)
+    mapfile -t timezones < <(get_timezones | sed '/^[[:space:]]*$/d' | sort -u)
+    if ((${#layouts[@]})); then
+        printf 'Current X11 keyboard layout: %s\n' "$current_layout"
+        if select_setting 'Choose an X11 keyboard layout (search with /text)' layout "${layouts[@]}"; then
+            :
+        else
+            layout="$current_layout"
+        fi
+    else
+        read -r -p "Keyboard layout [$current_layout]: " answer
+        layout="${answer:-$current_layout}"
+    fi
+    if ((${#timezones[@]})); then
+        printf 'Current timezone: %s\n' "$timezone"
+        if select_setting 'Choose a timezone; search UTC explicitly with /UTC' timezone "${timezones[@]}"; then
+            :
+        else
+            timezone="$current_timezone"
+            [[ -n "$timezone" ]] || timezone=UTC
+        fi
+    else
+        read -r -p "Timezone [$timezone]: " answer
+        timezone="${answer:-$timezone}"
+    fi
 
     if command -v localectl >/dev/null 2>&1; then
         if [[ "$language" != "${LANG:-C.UTF-8}" ]] && ! as_root localectl set-locale "LANG=$language"; then

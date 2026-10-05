@@ -7,9 +7,20 @@ for cmd in fzf chafa feh notify-send; do
     command -v "$cmd" >/dev/null 2>&1 || { echo "error: $cmd not found." >&2; exit 1; }
 done
 
+theme_color() {
+    local key="$1" value
+    value="$(awk -F '[[:space:]]*=[[:space:]]*' -v key="$key" '$1 == key {print $2; exit}' \
+        "$HOME/.config/polybar/colors.ini" 2>/dev/null || true)"
+    [[ "$value" =~ ^#[[:xdigit:]]{6}$ ]] || value="#cccccc"
+    printf '%s' "$value"
+}
+
 pick_wallpaper() {
     local wall_dir="$1"
-    local result=0
+    local result=0 primary outline disabled
+    primary="$(theme_color primary)"
+    outline="$(theme_color outline)"
+    disabled="$(theme_color disabled)"
 
     if command -v ueberzugpp >/dev/null 2>&1 && [[ -n "${DISPLAY:-}" ]]; then
         local runtime_dir pid_file pid socket
@@ -26,7 +37,7 @@ pick_wallpaper() {
             WALLFINDER_UEBERZUG_SOCKET="$socket" fzf \
                 --prompt="select wallpaper > " \
                 --layout=reverse --border \
-                --color="prompt:#cccccc,pointer:#cccccc,marker:#cccccc,info:#cccccc,hl:#cccccc,hl+:#cccccc" \
+                --color="border:$outline,prompt:$primary,pointer:$primary,marker:$primary,info:$disabled,hl:$primary,hl+:$primary" \
                 --preview='ueberzugpp cmd -s "$WALLFINDER_UEBERZUG_SOCKET" -i wallfinder -a add -x "$FZF_PREVIEW_LEFT" -y "$FZF_PREVIEW_TOP" --max-width "$FZF_PREVIEW_COLUMNS" --max-height "$FZF_PREVIEW_LINES" -f {}' \
                 --preview-window=right:65%:wrap \
                 --header="enter to apply | esc/ctrl-c to exit" < <(find "$wall_dir" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \) -print)
@@ -43,7 +54,7 @@ pick_wallpaper() {
     fzf \
         --prompt="select wallpaper > " \
         --layout=reverse --border \
-        --color="prompt:#cccccc,pointer:#cccccc,marker:#cccccc,info:#cccccc,hl:#cccccc,hl+:#cccccc" \
+        --color="border:$outline,prompt:$primary,pointer:$primary,marker:$primary,info:$disabled,hl:$primary,hl+:$primary" \
         --preview='chafa --format symbols --symbols sextant+block --colors full --work 9 --scale max --size ${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES} -- {}' \
         --preview-window=right:65%:wrap \
         --header="enter to apply | esc/ctrl-c to exit" < <(find "$wall_dir" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \) -print)
@@ -72,11 +83,88 @@ while true; do
     printf '%s\n' "$img_selection" > "$state_dir/last-wallpaper"
     if command -v matugen >/dev/null 2>&1; then
         if palette_json=$(matugen image "$img_selection" --mode dark --type scheme-fidelity --source-color-index 0 --fallback-color "#ffffff" --json hex); then
-            source_color=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["colors"]["source_color"]["default"]["color"])' <<< "$palette_json")
-            # Treat near-neutral dominant colors as black-and-white and use a clear white outline.
-            if python3 -c 'import sys; h=sys.argv[1].lstrip("#"); r,g,b=(int(h[i:i+2],16) for i in (0,2,4)); m=max(r,g,b); print("neutral" if (0 if m == 0 else (m-min(r,g,b))/m) <= 0.08 else "color")' "$source_color" | grep -qx neutral; then
-                sed -i 's/^outline = .*/outline = #ffffff/' "$HOME/.config/polybar/colors.ini"
-                printf '* {\n    accent: #ffffff;\n}\n' > "$HOME/.config/rofi/matugen-colors.rasi"
+            if border_colors="$(python3 - "$palette_json" "$HOME/.config" <<'PY'
+import json
+import re
+import sys
+from pathlib import Path
+
+payload = json.loads(sys.argv[1])
+config = Path(sys.argv[2])
+palette = payload["colors"]["dark"]
+
+def color(name, fallback):
+    value = palette.get(name, fallback)
+    return value if re.fullmatch(r"#[0-9a-fA-F]{6}", value) else fallback
+
+source = color("source_color", "#ffffff")
+rgb = tuple(int(source[i:i + 2], 16) for i in (1, 3, 5))
+maximum, minimum = max(rgb), min(rgb)
+neutral = maximum == 0 or (maximum - minimum) / maximum <= 0.08
+outline = "#ffffff" if neutral else color("outline", "#686868")
+outline_variant = color("outline_variant", outline)
+primary = color("primary", "#686868")
+secondary = color("secondary", primary)
+surface = color("surface", "#101010")
+surface_variant = color("surface_variant", "#252525")
+active = color("secondary_container", surface_variant)
+foreground = color("on_background", "#b9b9b9")
+foreground_alt = color("on_surface", foreground)
+alert = color("error", "#999999")
+
+(config / "polybar/colors.ini").write_text(
+    "[colors]\n"
+    f"background = {surface}\n"
+    f"background-alt = {surface_variant}\n"
+    f"background-active = {active}\n"
+    f"foreground = {foreground}\n"
+    f"foreground-alt = {foreground_alt}\n"
+    f"primary = {primary}\n"
+    f"secondary = {secondary}\n"
+    f"alert = {alert}\n"
+    f"disabled = {outline_variant}\n"
+    f"outline = {outline}\n"
+)
+(config / "rofi/matugen-colors.rasi").write_text(
+    "* {\n"
+    f"    accent: {outline};\n"
+    f"    background: {surface};\n"
+    f"    background-alt: {surface_variant};\n"
+    f"    background-active: {active};\n"
+    f"    foreground: {foreground};\n"
+    f"    foreground-alt: {foreground_alt};\n"
+    f"    muted: {outline_variant};\n"
+    "}\n"
+)
+
+bspwmrc = config / "bspwm/bspwmrc"
+text = bspwmrc.read_text()
+text = re.sub(r'(?m)^bspc config focused_border_color\s+.*$',
+              f'bspc config focused_border_color "{outline}"', text)
+text = re.sub(r'(?m)^bspc config normal_border_color\s+.*$',
+              f'bspc config normal_border_color "{outline_variant}"', text)
+if "bspc config normal_border_color" not in text:
+    text = text.replace(f'bspc config focused_border_color "{outline}"',
+                        f'bspc config focused_border_color "{outline}"\n'
+                        f'bspc config normal_border_color "{outline_variant}"')
+bspwmrc.write_text(text)
+
+dunstrc = config / "dunst/dunstrc"
+text = dunstrc.read_text()
+text = re.sub(r'(?m)^(\s*frame_color\s*=\s*)"?#[0-9a-fA-F]{6}"?\s*$',
+              rf'\g<1>"{outline}"', text)
+dunstrc.write_text(text)
+print(outline, outline_variant)
+PY
+)"; then
+                read -r outline outline_variant <<< "$border_colors"
+                command -v bspc >/dev/null 2>&1 && {
+                    bspc config focused_border_color "$outline" || true
+                    bspc config normal_border_color "$outline_variant" || true
+                }
+                command -v dunstctl >/dev/null 2>&1 && dunstctl reload >/dev/null 2>&1 || true
+            else
+                echo "Matugen palette could not be applied to app outlines." >&2
             fi
             command -v polybar-msg >/dev/null 2>&1 && polybar-msg cmd restart >/dev/null 2>&1 || true
         else

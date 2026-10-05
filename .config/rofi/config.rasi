@@ -8,12 +8,6 @@ configuration {
 }
 
 * {
-    background: #101010;
-    background-alt: #252525;
-    background-active: #464646;
-    foreground: #b9b9b9;
-    foreground-alt: #e3e3e3;
-    muted: #868686;
     spacing: 0;
 }
 
