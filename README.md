@@ -39,11 +39,12 @@ The archive is written to `dist/`.
 
 ## Wallpaper picker
 
-`wallfinder` is launched with **Super + W**. It uses fzf and chafa to preview
-images, feh to set the wallpaper, and optionally Matugen to generate colors.
-By default, it looks for images in `~/Wallpapers`; set `WALLFINDER_DIR` to use a
-different directory. The preview uses full-color sextant symbols and a larger
-preview pane for finer detail in terminals without inline image support.
+`wallfinder` is launched with **Super + W**. It uses fzf and ueberzugpp for a
+sharp raster preview in X11, feh to set the wallpaper, and optionally Matugen
+to generate colors. Chafa provides a text preview fallback if ueberzugpp is
+unavailable. By default it looks for images in `~/Wallpapers`; set
+`WALLFINDER_DIR` to use a different directory. The Arch dependency installer
+includes ueberzugpp.
 
 ## Included configuration
 
