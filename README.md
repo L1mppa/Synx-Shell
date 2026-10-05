@@ -1,33 +1,60 @@
 # Bspwm Dots
 
-Personal bspwm desktop configuration for X11. The repository keeps the configuration under the same `.config` paths used in a home directory, plus the wallpaper picker in `.local/bin/wallfinder`.
+Personal bspwm desktop configuration for X11. Config files keep their usual
+paths under `.config`; the terminal wallpaper picker is included under
+`.local/bin`.
 
-## Included
+## Setup
 
-- bspwm window manager and autostart
-- sxhkd keyboard shortcuts
-- Alacritty terminal, Polybar, Rofi, Picom, and Dunst
-- Fastfetch configuration
-- pywal color scheme and templates
-- `wallfinder`, a terminal wallpaper picker that applies wallpapers with feh and can refresh Matugen colors
-
-## Dependencies
-
-Core setup: bspwm, sxhkd, Alacritty, feh, Picom, Dunst, Polybar, and Rofi.
-
-The wallpaper picker needs Bash, fzf, chafa, feh, and notify-send. Matugen and Python 3 are optional for wallpaper color generation. The Polybar scripts may also need playerctl, mpris, zscroll, and pamixer, depending on the modules enabled in the config. Some shortcuts use flameshot, greenclip, bemoji, rofi-power-menu, and dmenu-bluetooth.
-
-## Install
-
-Review the configs first, then copy them into your home directory while preserving the directory structure:
+From the repository checkout, run:
 
 ```sh
-cp -r .config "$HOME/"
-mkdir -p "$HOME/.local/bin"
-cp .local/bin/wallfinder "$HOME/.local/bin/wallfinder"
-chmod +x "$HOME/.local/bin/wallfinder"
+bash install.sh
 ```
 
-Set `WALLFINDER_DIR` to your wallpaper directory if it is not `$HOME/Wallpapers`. The Polybar and Rofi configs may contain local paths; adjust them for your machine before launching the session.
+The installer detects pacman, apt, dnf, zypper, xbps, or apk and installs the
+available dependencies before linking the configuration. Existing files are
+backed up under `~/.local/state/bspwm-dots/backups/`. Pass `--no-deps` to only
+install the dotfiles:
 
-The wallpaper picker is bound to **Super + W** in sxhkd. bspwm restores the last selected wallpaper from `~/.local/state/wallfinder/last-wallpaper`.
+```sh
+bash install.sh --no-deps
+```
+
+On Arch Linux, the dependency installer uses `yay` or `paru` if present. If
+neither exists, it builds `yay` from the AUR as the current user. It needs git,
+`base-devel`, and sudo access for package installation. Other supported
+distributions install the packages available in their repositories; the script
+prints a note for packages that need manual installation there.
+
+## Build an archive
+
+Create a dated tarball containing the configuration and installer:
+
+```sh
+bash build.sh
+```
+
+The archive is written to `dist/`.
+
+## Wallpaper picker
+
+`wallfinder` is launched with **Super + W**. It uses fzf and chafa to preview
+images, feh to set the wallpaper, and optionally Matugen to generate colors.
+By default, it looks for images in `~/Wallpapers`; set `WALLFINDER_DIR` to use a
+different directory. The preview uses full-color sextant symbols and a larger
+preview pane for finer detail in terminals without inline image support.
+
+## Included configuration
+
+- bspwm and sxhkd
+- Alacritty, Polybar, Rofi, Picom, and Dunst
+- Fastfetch
+- pywal color scheme and templates
+- Polybar MPRIS helper scripts
+- the `wallfinder` wallpaper picker
+
+Some optional shortcuts require flameshot, greenclip, bemoji,
+rofi-power-menu, and dmenu-bluetooth. Review the configs for machine-specific
+paths and adjust them before starting bspwm. Select bspwm in your display
+manager, or start it with `startx`.
