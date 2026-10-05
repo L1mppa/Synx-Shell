@@ -72,4 +72,4 @@ EOF
 fi
 
 printf 'Starting the Synx Shell installer...\n\n'
-exec bash "$PROJECT_ROOT/install.sh" "$@"
+bash "$PROJECT_ROOT/install.sh" "$@"
