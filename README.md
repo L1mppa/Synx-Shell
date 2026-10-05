@@ -12,7 +12,7 @@ prompted; it is not saved in the repository or shell history.
 
 ```sh
 read -rsp 'GitHub read token: ' GH_TOKEN; printf '\n'; export GH_TOKEN
-bash -c "$(curl --config <(printf 'header = \"Authorization: Bearer %s\"\n' \"$GH_TOKEN\") -fsSL 'https://raw.githubusercontent.com/L1mppa/Synx-Shell/main/install/install.sh')"
+bash -c "$(curl --config <(printf 'header = "Authorization: Bearer %s"\n' "$GH_TOKEN") -fsSL 'https://raw.githubusercontent.com/L1mppa/Synx-Shell/main/install/install.sh')"
 ```
 
 The bootstrap prints the Synx Shell logo, downloads the repository snapshot to
