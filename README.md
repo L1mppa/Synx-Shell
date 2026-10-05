@@ -57,6 +57,68 @@ images in `~/Wallpapers`; set
 `WALLFINDER_DIR` to use a different directory. The Arch dependency installer
 includes ueberzugpp.
 
+## Keybindings
+
+The main modifier is **Super** (usually the Windows key).
+
+### Launchers and actions
+
+| Key | Action |
+| --- | --- |
+| `Super + Enter` | Open Alacritty |
+| `Super + Space` | Open the Rofi app and window launcher |
+| `Super + W` | Open the wallpaper picker |
+| `Super + P` | Start Flameshot region capture |
+| `Super + E` | Open Bemoji |
+| `Super + S` | Open the Rofi power menu |
+| `Super + B` | Open Bluetooth controls |
+| `Super + N` | Send a test notification |
+| `Super + Esc` | Reload sxhkd keybindings |
+| `Super + C` | Open the Greenclip clipboard menu; this conflicts with the next-window binding below |
+
+### Window and desktop control
+
+| Key | Action |
+| --- | --- |
+| `Super + Q` | Close the focused window |
+| `Super + Shift + Q` | Kill the focused window |
+| `Super + Alt + Q` | Quit bspwm |
+| `Super + Alt + R` | Restart bspwm |
+| `Super + T` | Set tiled state |
+| `Super + Shift + T` | Set pseudo-tiled state |
+| `Super + V` | Set floating state |
+| `Super + F` | Set fullscreen state |
+| `Super + M` | Toggle tiled and monocle layouts |
+| `Super + G` | Swap the focused window with the largest window |
+| `Super + Y` | Move the newest marked window to the newest preselected node |
+| `Super + Ctrl + M/X/Y/Z` | Set the marked / locked / sticky / private flag |
+| `Super + H/J/K/L` | Focus the window to the left / down / up / right |
+| `Super + Shift + H/J/K/L` | Swap the focused window with the neighbor left / down / up / right |
+| `Super + C` | Focus the next window in this desktop; conflicts with Greenclip above |
+| `Super + Shift + C` | Focus the previous window in this desktop |
+| `Super + [` / `Super + ]` | Focus the previous / next desktop |
+| `Super + Grave` | Focus the last window |
+| `Super + Tab` | Focus the last desktop |
+| `Super + O` / `Super + I` | Focus the older / newer window in focus history |
+| `Super + 1…9` / `Super + 0` | Focus desktop 1…9 / desktop 10 |
+| `Super + Shift + 1…9` / `Super + Shift + 0` | Send the focused window to desktop 1…9 / desktop 10 |
+
+### Tiling and floating window movement
+
+| Key | Action |
+| --- | --- |
+| `Super + Ctrl + H/J/K/L` | Preselect left / down / up / right for the next tiled window |
+| `Super + Ctrl + 1…9` | Set the preselection ratio to 0.1…0.9 |
+| `Super + Ctrl + Space` | Cancel the focused node's preselection |
+| `Super + Ctrl + Shift + Space` | Cancel preselection for all windows on the desktop |
+| `Super + Alt + H/J/K/L` | Expand the focused window toward the left / bottom / top / right |
+| `Super + Alt + Shift + H/J/K/L` | Contract the focused window from the left / bottom / top / right |
+| `Super + Arrow keys` | Move a floating window |
+
+**Key conflict:** `Super + C` is assigned to both Greenclip and focusing the next
+window. sxhkd cannot reliably run both actions for one chord; change one binding
+in `.config/sxhkd/sxhkdrc` to make both available.
+
 ## Included configuration
 
 - bspwm and sxhkd
