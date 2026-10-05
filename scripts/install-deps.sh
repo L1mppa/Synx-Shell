@@ -46,9 +46,25 @@ as_root() {
     fi
 }
 
+# Pacman defaults conflict-removal questions to "no". Feed yes responses to
+# package transactions so replacement/conflict prompts are resolved as requested.
+# Disable pipefail for this pipeline because `yes` exits on SIGPIPE when pacman
+# finishes; still return pacman's exit status.
+run_with_yes() {
+    local status
+    set +o pipefail
+    if yes | "$@"; then
+        status=0
+    else
+        status=$?
+    fi
+    set -o pipefail
+    return "$status"
+}
+
 install_packages() {
     case "$manager" in
-        pacman) as_root pacman -S --needed --noconfirm "$@" ;;
+        pacman) run_with_yes as_root pacman -S --needed "$@" ;;
         apt) as_root apt-get install -y "$@" ;;
         dnf) as_root dnf install -y "$@" ;;
         zypper) as_root zypper --non-interactive install "$@" ;;
@@ -83,7 +99,7 @@ case "$manager" in
             (cd "$build_dir/yay" && makepkg -si --noconfirm)
             helper=yay
         fi
-        "$helper" -S --needed --noconfirm "${aur_packages[@]}"
+        run_with_yes "$helper" -S --needed --noconfirm "${aur_packages[@]}"
         ;;
     apt)
         as_root apt-get update

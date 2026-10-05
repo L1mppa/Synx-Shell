@@ -40,7 +40,9 @@ On Arch Linux, the dependency installer uses `yay` or `paru` if present. If
 neither exists, it builds `yay` from the AUR as the current user. It needs git,
 `base-devel`, and sudo access for package installation. Other supported
 distributions install the packages available in their repositories; the script
-prints a note for packages that need manual installation there.
+prints a note for packages that need manual installation there. Arch package
+conflict and replacement prompts are automatically answered yes so pacman can
+resolve the package transaction.
 
 ## Build an archive
 
