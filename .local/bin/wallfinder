@@ -30,17 +30,19 @@ pick_wallpaper() {
         pid_file="$(mktemp "$runtime_dir/.wallfinder-ueberzugpp.XXXXXX")"
         rm -f -- "$pid_file"
 
-        if ueberzugpp layer --no-stdin --silent --use-escape-codes --output x11 --pid-file "$pid_file" 2>/dev/null \
+        if ueberzugpp layer --no-stdin --silent --use-escape-codes --output x11 --pid-file "$pid_file" \
+            >/dev/tty 2>/dev/null \
             && [[ -s "$pid_file" ]]; then
             pid="$(<"$pid_file")"
             socket="$runtime_dir/ueberzugpp-$pid.socket"
             WALLFINDER_UEBERZUG_SOCKET="$socket" fzf \
+                --read0 --print0 \
                 --prompt="select wallpaper > " \
                 --layout=reverse --border \
                 --color="border:$outline,prompt:$primary,pointer:$primary,marker:$primary,info:$disabled,hl:$primary,hl+:$primary" \
                 --preview='ueberzugpp cmd -s "$WALLFINDER_UEBERZUG_SOCKET" -i wallfinder -a add -x "$FZF_PREVIEW_LEFT" -y "$FZF_PREVIEW_TOP" --max-width "$FZF_PREVIEW_COLUMNS" --max-height "$FZF_PREVIEW_LINES" -f {}' \
                 --preview-window=right:65%:wrap \
-                --header="enter to apply | esc/ctrl-c to exit" < <(find "$wall_dir" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \) -print)
+                --header="enter to apply | esc/ctrl-c to exit" < <(find "$wall_dir" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \) -print0)
             result=$?
             ueberzugpp cmd -s "$socket" -a exit >/dev/null 2>&1 || true
             rm -f -- "$pid_file"
@@ -52,12 +54,13 @@ pick_wallpaper() {
     # Chafa is a text fallback for terminals where X11 image overlays are
     # unavailable; it cannot match the raster preview above.
     fzf \
+        --read0 --print0 \
         --prompt="select wallpaper > " \
         --layout=reverse --border \
         --color="border:$outline,prompt:$primary,pointer:$primary,marker:$primary,info:$disabled,hl:$primary,hl+:$primary" \
         --preview='chafa --format symbols --symbols sextant+block --colors full --work 9 --scale max --size ${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES} -- {}' \
         --preview-window=right:65%:wrap \
-        --header="enter to apply | esc/ctrl-c to exit" < <(find "$wall_dir" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \) -print)
+        --header="enter to apply | esc/ctrl-c to exit" < <(find "$wall_dir" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \) -print0)
     return $?
 }
 
@@ -71,9 +74,12 @@ if [[ ! -d "$wall_dir" ]]; then
 fi
 
 while true; do
-    img_selection=$(pick_wallpaper "$wall_dir")
-    result=$?
-    [[ $result -ne 0 || -z "$img_selection" ]] && exit 0
+    img_selection=''
+    IFS= read -r -d '' img_selection < <(pick_wallpaper "$wall_dir") || exit 0
+    if [[ ! -f "$img_selection" || ! -r "$img_selection" ]]; then
+        notify-send "Wallpaper unavailable" "The selected image moved or was removed. Choose another image."
+        continue
+    fi
 
     if ! feh --no-fehbg --bg-fill "$img_selection"; then
         notify-send "Wallpaper failed" "Could not apply $(basename "$img_selection")."
@@ -91,10 +97,19 @@ from pathlib import Path
 
 payload = json.loads(sys.argv[1])
 config = Path(sys.argv[2])
-palette = payload["colors"]["dark"]
+colors = payload["colors"]
+palette = colors.get("dark")
+if not isinstance(palette, dict) or "source_color" not in palette:
+    # Matugen 4 emits one object per color, with dark/default/light variants.
+    # Older releases emitted the selected palette under colors.dark.
+    palette = colors
 
 def color(name, fallback):
     value = palette.get(name, fallback)
+    if isinstance(value, dict) and "color" not in value:
+        value = value.get("dark", value.get("default", value))
+    if isinstance(value, dict):
+        value = value.get("color", fallback)
     return value if re.fullmatch(r"#[0-9a-fA-F]{6}", value) else fallback
 
 source = color("source_color", "#ffffff")
