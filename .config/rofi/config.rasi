@@ -1,0 +1,106 @@
+@import "/home/arch/.config/rofi/matugen-colors.rasi"
+
+
+configuration {
+    modi: "window,drun,combi";
+    font: "Iosevka Nerd Font Mono 14";
+    combi-modi: "window,drun";
+}
+
+* {
+    background: #101010;
+    background-alt: #252525;
+    background-active: #464646;
+    foreground: #b9b9b9;
+    foreground-alt: #e3e3e3;
+    muted: #868686;
+    spacing: 0;
+}
+
+window {
+    location: center;
+    anchor: center;
+    width: 42%;
+    border: 2px;
+    border-radius: 10px;
+    border-color: @accent;
+    background-color: @background;
+    padding: 16px;
+}
+
+mainbox {
+    children: [inputbar, listview];
+    spacing: 12px;
+    background-color: transparent;
+}
+
+inputbar {
+    children: [prompt, entry];
+    spacing: 10px;
+    padding: 10px 12px;
+    border: 1px;
+    border-radius: 6px;
+    border-color: @background-alt;
+    background-color: @background-alt;
+}
+
+prompt {
+    text-color: @foreground;
+}
+
+entry {
+    text-color: @foreground;
+    placeholder: "Search applications…";
+    placeholder-color: @muted;
+}
+
+listview {
+    lines: 8;
+    columns: 1;
+    spacing: 4px;
+    scrollbar: false;
+    background-color: transparent;
+}
+
+element {
+    padding: 8px 10px;
+    border-radius: 6px;
+    background-color: transparent;
+}
+
+element-text, element-icon {
+    background-color: inherit;
+    text-color: inherit;
+}
+
+element normal.normal, element alternate.normal {
+    background-color: transparent;
+    text-color: @foreground;
+}
+
+/* Keep the focused app neutral, with the wallpaper accent as a slim marker. */
+element normal.active, element alternate.active {
+    background-color: @background-active;
+    text-color: @foreground-alt;
+    border: 0px 0px 0px 3px;
+    border-color: @accent;
+}
+
+/* Neutralize the default yellow/orange urgent styling. */
+element normal.urgent, element alternate.urgent {
+    background-color: transparent;
+    text-color: @foreground;
+}
+
+/* Hovered rows use a subtle gray fill and a thin accent edge instead of a solid accent block. */
+element selected.normal, element selected.active, element selected.urgent {
+    background-color: @background-active;
+    text-color: @foreground-alt;
+    border: 0px 0px 0px 3px;
+    border-color: @accent;
+}
+
+scrollbar {
+    handle-color: @muted;
+    background-color: @background-alt;
+}
