@@ -60,7 +60,7 @@ install_packages() {
 case "$manager" in
     pacman)
         as_root pacman -Sy
-        repo_packages=(bash git base-devel bspwm sxhkd alacritty feh picom dunst polybar rofi fastfetch fzf chafa libnotify playerctl pamixer flameshot matugen python)
+        repo_packages=(bash git base-devel bspwm sxhkd alacritty feh picom dunst polybar rofi fastfetch fzf chafa ueberzugpp libnotify playerctl pamixer flameshot matugen python)
         aur_packages=(python-pywal16 zscroll greenclip bemoji rofi-power-menu dmenu-bluetooth)
 
         helper=''
@@ -88,20 +88,20 @@ case "$manager" in
     apt)
         as_root apt-get update
         install_packages bash git build-essential bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-bin playerctl pamixer flameshot python3
-        echo 'Matugen, Fastfetch, pywal16, and AUR-only extras are not installed by this Debian/Ubuntu package mapping.'
+        echo 'Matugen, Fastfetch, ueberzugpp, pywal16, and AUR-only extras are not installed by this Debian/Ubuntu package mapping.'
         ;;
     dnf)
         install_packages bash git make gcc bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3
-        echo 'Matugen, Fastfetch, pywal16, and AUR-only extras are not installed by this Fedora package mapping.'
+        echo 'Matugen, Fastfetch, ueberzugpp, pywal16, and AUR-only extras are not installed by this Fedora package mapping.'
         ;;
     zypper)
         install_packages bash git make gcc bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-tools playerctl pamixer flameshot python3
-        echo 'Matugen, Fastfetch, pywal16, and AUR-only extras are not installed by this openSUSE package mapping.'
+        echo 'Matugen, Fastfetch, ueberzugpp, pywal16, and AUR-only extras are not installed by this openSUSE package mapping.'
         ;;
     xbps)
         as_root xbps-install -S
         install_packages bash git base-devel bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3
-        echo 'Matugen, Fastfetch, pywal16, and AUR-only extras are not installed by this Void package mapping.'
+        echo 'Matugen, Fastfetch, ueberzugpp, pywal16, and AUR-only extras are not installed by this Void package mapping.'
         ;;
     apk)
         install_packages bash git build-base bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3
