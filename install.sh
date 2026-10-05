@@ -2,32 +2,16 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
-BACKUP_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}/bspwm-dots/backups/$(date +%Y%m%d-%H%M%S)"
-INSTALL_DEPS=1
+BACKUP_ROOT="${XDG_STATE_HOME:-$HOME/.local/state}/synx-shell/backups/$(date +%Y%m%d-%H%M%S)"
 
-usage() {
-    cat <<'EOF'
-Usage: bash install.sh [--no-deps]
+if [[ "${SYNX_SHELL_INSTALLER:-}" != 1 ]]; then
+    echo 'Use the Synx Shell curl installer to install this configuration.' >&2
+    exit 2
+fi
 
-Install the bundled desktop configuration into $HOME. Existing files are
-backed up before they are replaced. Dependencies are installed by default.
-
-Options:
-  --no-deps  Skip package installation
-  -h, --help Show this help
-EOF
-}
-
-for arg in "$@"; do
-    case "$arg" in
-        --no-deps) INSTALL_DEPS=0 ;;
-        -h|--help) usage; exit 0 ;;
-        *) printf 'Unknown option: %s\n' "$arg" >&2; usage >&2; exit 2 ;;
-    esac
-done
-
-if (( INSTALL_DEPS )); then
-    bash "$ROOT_DIR/scripts/install-deps.sh"
+if (($#)); then
+    echo 'This deploy script is managed by the Synx Shell installer.' >&2
+    exit 2
 fi
 
 backup_existing() {
@@ -107,7 +91,7 @@ for executable in \
     [[ -e "$executable" ]] && chmod +x "$executable"
 done
 
-printf '\nConfiguration linked from %s\n' "$ROOT_DIR"
+printf '\nSynx Shell configuration linked from %s\n' "$ROOT_DIR"
 if [[ -d "$BACKUP_ROOT" ]]; then
     printf 'Backups are in %s\n' "$BACKUP_ROOT"
 fi

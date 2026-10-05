@@ -4,22 +4,15 @@ Personal bspwm desktop configuration for X11. Config files keep their usual
 paths under `.config`; the terminal wallpaper picker is included under
 `.local/bin`.
 
-## Setup
+## Install
 
-From the repository checkout, run:
-
-```sh
-bash install.sh
-```
-
-For a direct download installer, create a GitHub token with read access to this
-private repository. The token is read without echoing and passed to curl through
-a temporary config pipe:
+Install with the Synx Shell curl command. Since this repository is private, first
+create a GitHub token with read access to repository contents. Enter it when
+prompted; it is not saved in the repository or shell history.
 
 ```sh
 read -rsp 'GitHub read token: ' GH_TOKEN; printf '\n'; export GH_TOKEN
-curl_config="header = \"Authorization: Bearer $GH_TOKEN\""
-bash -c "$(curl --config <(printf '%s\n' "$curl_config") -fsSL 'https://raw.githubusercontent.com/L1mppa/Bspwm-Dots/main/install/install.sh')"
+bash -c "$(curl --config <(printf 'header = \"Authorization: Bearer %s\"\n' \"$GH_TOKEN\") -fsSL 'https://raw.githubusercontent.com/L1mppa/Synx-Shell/main/install/install.sh')"
 ```
 
 The bootstrap prints the Synx Shell logo, downloads the repository snapshot to
@@ -27,14 +20,9 @@ The bootstrap prints the Synx Shell logo, downloads the repository snapshot to
 dependencies, repository wallpapers, and final config deployment. The token
 needs repository contents read access only.
 
-The installer detects pacman, apt, dnf, zypper, xbps, or apk and installs the
-available dependencies before linking the configuration. Existing files are
-backed up under `~/.local/state/bspwm-dots/backups/`. Pass `--no-deps` to only
-install the dotfiles:
-
-```sh
-bash install.sh --no-deps
-```
+Choose settings, dependencies, wallpapers, and config deployment from the
+installer menu. Existing config files are backed up under
+`~/.local/state/synx-shell/backups/`.
 
 On Arch Linux, the dependency installer uses `yay` or `paru` if present. If
 neither exists, it builds `yay` from the AUR as the current user. It needs git,
@@ -43,16 +31,6 @@ distributions install the packages available in their repositories; the script
 prints a note for packages that need manual installation there. Arch package
 conflict and replacement prompts are automatically answered yes so pacman can
 resolve the package transaction.
-
-## Build an archive
-
-Create a dated tarball containing the configuration and installer:
-
-```sh
-bash build.sh
-```
-
-The archive is written to `dist/`.
 
 ## Installer steps
 

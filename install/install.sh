@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_OWNER="L1mppa"
-REPO_NAME="Bspwm-Dots"
+REPO_NAME="Synx-Shell"
 REPO_BRANCH="main"
 REPO_SLUG="$REPO_OWNER/$REPO_NAME"
 CACHE_ROOT="${XDG_CACHE_HOME:-$HOME/.cache}/synx-shell"
@@ -35,7 +35,7 @@ if [[ -z "$PROJECT_ROOT" ]]; then
     if [[ -z "${GH_TOKEN:-}" ]]; then
         cat >&2 <<'EOF'
 This repository is private. Set GH_TOKEN to a GitHub token with read access to
-L1mppa/Bspwm-Dots, then run the curl installer again.
+L1mppa/Synx-Shell, then run the curl installer again.
 EOF
         exit 1
     fi
@@ -163,7 +163,7 @@ while :; do
         3) install_wallpapers ;;
         4)
             printf '\nDeploying Synx Shell...\n\n'
-            bash "$PROJECT_ROOT/install.sh" --no-deps
+            SYNX_SHELL_INSTALLER=1 bash "$PROJECT_ROOT/install.sh"
             exit $?
             ;;
         q|Q) exit 0 ;;
