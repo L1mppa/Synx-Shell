@@ -112,11 +112,6 @@ The main modifier is **Super** (usually the Windows key).
 | `Super + Alt + Shift + H/J/K/L` | Contract the focused window from the left / bottom / top / right |
 | `Super + Arrow keys` | Move a floating window |
 
-## Screenshots
-
-Screenshots of the running desktop should be added here when captured from an
-active bspwm session.
-
 ## Included configuration
 
 - bspwm, sxhkd, and guarded desktop autostart
