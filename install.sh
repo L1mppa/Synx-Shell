@@ -48,15 +48,20 @@ if [[ ! -d "$ROOT_DIR/.config" ]]; then
     exit 1
 fi
 
+# Restore the required executable modes if a source archive flattened them.
+chmod 755 \
+    "$ROOT_DIR/.config/bspwm/bspwmrc" \
+    "$ROOT_DIR/.local/bin/wallfinder" \
+    "$ROOT_DIR/.local/bin/synx-shell-runtime" \
+    "$ROOT_DIR/.local/bin/synx-theme" \
+    "$ROOT_DIR/.xinitrc"
+
 install_tree "$ROOT_DIR/.config" "$HOME/.config"
 if [[ -d "$ROOT_DIR/.local" ]]; then
     install_tree "$ROOT_DIR/.local" "$HOME/.local"
 fi
 if [[ -f "$ROOT_DIR/.xinitrc" ]]; then
     install_tree "$ROOT_DIR/.xinitrc" "$HOME/.xinitrc"
-    # Git's archive endpoint can deliver this new file without its executable
-    # mode; startx must be able to execute the user's .xinitrc.
-    chmod 755 "$HOME/.xinitrc"
 fi
 
 bash "$HOME/.local/bin/synx-shell-runtime"
