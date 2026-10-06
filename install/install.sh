@@ -5,6 +5,8 @@ REPO_OWNER="L1mppa"
 REPO_NAME="Synx-Shell"
 REPO_BRANCH="main"
 REPO_SLUG="$REPO_OWNER/$REPO_NAME"
+DATA_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/synx-shell"
+REPO_DIR="$DATA_ROOT/repo"
 CACHE_ROOT="${XDG_CACHE_HOME:-$HOME/.cache}/synx-shell"
 
 show_banner() {
@@ -29,37 +31,77 @@ if [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
 fi
 
 if [[ -z "$PROJECT_ROOT" ]]; then
-    command -v curl >/dev/null 2>&1 || { echo 'Synx Shell needs curl to download its files.' >&2; exit 1; }
-    command -v tar >/dev/null 2>&1 || { echo 'Synx Shell needs tar to unpack its files.' >&2; exit 1; }
+    if [[ -n "${GH_TOKEN:-}" ]]; then
+        command -v curl >/dev/null 2>&1 || { echo 'Synx Shell needs curl to download its files.' >&2; exit 1; }
+        command -v tar >/dev/null 2>&1 || { echo 'Synx Shell needs tar to unpack its files.' >&2; exit 1; }
+        mkdir -p "$DATA_ROOT" "$CACHE_ROOT"
+        ARCHIVE="$(mktemp "$CACHE_ROOT/archive.XXXXXX")"
+        STAGING="$(mktemp -d "$DATA_ROOT/.repo-stage.XXXXXX")"
+        trap 'rm -f -- "${ARCHIVE:-}"; [[ -z "${STAGING:-}" ]] || rm -rf -- "$STAGING"' EXIT
 
-    if [[ -z "${GH_TOKEN:-}" ]]; then
+        printf 'Downloading Synx Shell from %s...\n' "$REPO_SLUG"
+        if ! curl --config <(printf 'header = "Authorization: Bearer %s"\n' "$GH_TOKEN") \
+            --fail --location --silent --show-error \
+            "https://api.github.com/repos/$REPO_SLUG/tarball/$REPO_BRANCH" \
+            --output "$ARCHIVE"; then
+            echo 'Download failed. Check GH_TOKEN access and your network connection.' >&2
+            exit 1
+        fi
+
+        tar -xzf "$ARCHIVE" --strip-components=1 -C "$STAGING"
+        if ! is_project_root "$STAGING"; then
+            echo 'The downloaded archive is missing required Synx Shell files.' >&2
+            exit 1
+        fi
+
+        PREVIOUS=""
+        if [[ -e "$REPO_DIR" || -L "$REPO_DIR" ]]; then
+            PREVIOUS="$DATA_ROOT/.repo-previous.$$"
+            rm -rf -- "$PREVIOUS"
+            mv -- "$REPO_DIR" "$PREVIOUS"
+        fi
+        if ! mv -- "$STAGING" "$REPO_DIR"; then
+            [[ -z "$PREVIOUS" ]] || mv -- "$PREVIOUS" "$REPO_DIR"
+            echo 'Could not install the downloaded Synx Shell checkout.' >&2
+            exit 1
+        fi
+        STAGING=""
+        [[ -z "$PREVIOUS" ]] || rm -rf -- "$PREVIOUS"
+        PROJECT_ROOT="$REPO_DIR"
+    else
         cat >&2 <<'EOF'
 This repository is private. Set GH_TOKEN to a GitHub token with read access to
 L1mppa/Synx-Shell, then run the curl installer again.
 EOF
         exit 1
     fi
+fi
 
-    mkdir -p "$CACHE_ROOT"
-    SOURCE_DIR="$(mktemp -d "$CACHE_ROOT/source.XXXXXX")"
-    ARCHIVE="$(mktemp "$CACHE_ROOT/archive.XXXXXX")"
-    trap 'rm -f -- "$ARCHIVE"' EXIT
-
-    printf 'Downloading Synx Shell from %s...\n' "$REPO_SLUG"
-    if ! curl --config <(printf 'header = "Authorization: Bearer %s"\n' "$GH_TOKEN") \
-        --fail --location --silent --show-error \
-        "https://api.github.com/repos/$REPO_SLUG/tarball/$REPO_BRANCH" \
-        --output "$ARCHIVE"; then
-        echo 'Download failed. Check GH_TOKEN access and your network connection.' >&2
+# Keep linked configuration sources in stable user data storage, even when
+# this script was started from a temporary checkout or a manual clone.
+if [[ "$PROJECT_ROOT" != "$REPO_DIR" ]]; then
+    mkdir -p "$DATA_ROOT"
+    STAGING="$(mktemp -d "$DATA_ROOT/.repo-stage.XXXXXX")"
+    trap '[[ -z "${STAGING:-}" ]] || rm -rf -- "$STAGING"' EXIT
+    tar -cf - -C "$PROJECT_ROOT" --exclude=.git --exclude=dist . | tar -xf - -C "$STAGING"
+    if ! is_project_root "$STAGING"; then
+        echo 'Could not prepare a stable Synx Shell checkout.' >&2
         exit 1
     fi
-
-    tar -xzf "$ARCHIVE" --strip-components=1 -C "$SOURCE_DIR"
-    if ! is_project_root "$SOURCE_DIR"; then
-        echo 'The downloaded archive is missing required Synx Shell files.' >&2
+    PREVIOUS=""
+    if [[ -e "$REPO_DIR" || -L "$REPO_DIR" ]]; then
+        PREVIOUS="$DATA_ROOT/.repo-previous.$$"
+        rm -rf -- "$PREVIOUS"
+        mv -- "$REPO_DIR" "$PREVIOUS"
+    fi
+    if ! mv -- "$STAGING" "$REPO_DIR"; then
+        [[ -z "$PREVIOUS" ]] || mv -- "$PREVIOUS" "$REPO_DIR"
+        echo 'Could not move Synx Shell into its stable data directory.' >&2
         exit 1
     fi
-    PROJECT_ROOT="$SOURCE_DIR"
+    STAGING=""
+    [[ -z "$PREVIOUS" ]] || rm -rf -- "$PREVIOUS"
+    PROJECT_ROOT="$REPO_DIR"
 fi
 
 show_banner
@@ -129,12 +171,14 @@ select_setting() {
 
 get_timezones() {
     if command -v timedatectl >/dev/null 2>&1; then
-        timedatectl list-timezones 2>/dev/null || true
+        timedatectl list-timezones 2>/dev/null || printf 'UTC\n'
+        printf 'UTC\n'
+        return 0
     fi
-    if [[ -d /usr/share/zoneinfo ]]; then
-        find /usr/share/zoneinfo \( -type f -o -type l \) -print 2>/dev/null \
-            | sed 's#^/usr/share/zoneinfo/##' \
-            | grep -vE '^(posix|right|SystemV)/|^(localtime|posixrules)$' || true
+    if [[ -r /usr/share/zoneinfo/zone1970.tab ]]; then
+        awk -F '\t' '!/^#/ && NF >= 3 {print $3}' /usr/share/zoneinfo/zone1970.tab
+    elif [[ -r /usr/share/zoneinfo/zone.tab ]]; then
+        awk -F '\t' '!/^#/ && NF >= 3 {print $3}' /usr/share/zoneinfo/zone.tab
     fi
     printf 'UTC\n'
 }
@@ -225,10 +269,10 @@ install_wallpapers() {
     local -a images=()
     destination="${WALLFINDER_DIR:-$HOME/Wallpapers}"
     if [[ -d "$PROJECT_ROOT/wallpapers" ]]; then
-        mapfile -d '' images < <(find "$PROJECT_ROOT/wallpapers" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) -print0)
+        mapfile -d '' images < <(find "$PROJECT_ROOT/wallpapers" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) -print0 | sort -z)
     fi
     if ((${#images[@]} == 0)); then
-        echo "No wallpaper images are bundled in this repository yet. Add images under $PROJECT_ROOT/wallpapers and run this option again."
+        echo 'There are no wallpaper files to copy.'
         return 0
     fi
 

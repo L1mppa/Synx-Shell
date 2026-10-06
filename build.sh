@@ -15,6 +15,6 @@ mkdir -p "$DIST_DIR"
 tar -czf "$ARCHIVE" -C "$ROOT_DIR" \
     --exclude=.git \
     --exclude=dist \
-    README.md install.sh build.sh install scripts wallpapers .config .local
+    README.md install.sh build.sh .xinitrc install scripts wallpapers .config .local
 
 printf 'Built %s\n' "$ARCHIVE"

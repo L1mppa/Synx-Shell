@@ -46,27 +46,33 @@ as_root() {
     fi
 }
 
-# Pacman defaults conflict-removal questions to "no". Feed yes responses to
-# package transactions so replacement/conflict prompts are resolved as requested.
-# Disable pipefail for this pipeline because `yes` exits on SIGPIPE when pacman
-# finishes; still return pacman's exit status.
-run_with_yes() {
-    local status
-    set +o pipefail
-    if yes | "$@"; then
-        status=0
-    else
-        status=$?
-    fi
-    set -o pipefail
-    return "$status"
-}
-
 install_packages() {
     case "$manager" in
-        pacman) run_with_yes as_root pacman -S --needed "$@" ;;
-        apt) as_root apt-get install -y "$@" ;;
-        dnf) as_root dnf install -y "$@" ;;
+        pacman)
+            local -a pacman_options=(--needed --noconfirm)
+            if pacman --help 2>&1 | grep -q -- '--ask'; then
+                pacman_options+=(--ask=4)
+            else
+                echo 'This pacman does not support --ask; package conflicts will be left for pacman to handle safely.' >&2
+            fi
+            as_root pacman -Syu "${pacman_options[@]}" "$@"
+            ;;
+        apt)
+            local package
+            for package in "$@"; do
+                if ! as_root apt-get install -y "$package"; then
+                    printf 'Warning: apt could not install %s; continuing with the remaining packages.\n' "$package" >&2
+                fi
+            done
+            ;;
+        dnf)
+            local package
+            for package in "$@"; do
+                if ! as_root dnf install -y "$package"; then
+                    printf 'Warning: dnf could not install %s; continuing with the remaining packages.\n' "$package" >&2
+                fi
+            done
+            ;;
         zypper) as_root zypper --non-interactive install "$@" ;;
         xbps) as_root xbps-install -Sy "$@" ;;
         apk) as_root apk add "$@" ;;
@@ -75,9 +81,8 @@ install_packages() {
 
 case "$manager" in
     pacman)
-        as_root pacman -Sy
-        repo_packages=(bash git base-devel bspwm sxhkd alacritty feh picom dunst polybar rofi fastfetch fzf chafa ueberzugpp libnotify playerctl pamixer flameshot matugen python)
-        aur_packages=(python-pywal16 zscroll greenclip bemoji rofi-power-menu dmenu-bluetooth)
+        repo_packages=(bash git base-devel bspwm sxhkd alacritty feh picom dunst polybar rofi fastfetch fzf chafa ueberzugpp libnotify playerctl pamixer flameshot matugen python iproute2 xorg-server xorg-xinit xclip xdotool ttf-iosevka-nerd ttf-terminus-nerd)
+        aur_packages=(zscroll greenclip bemoji rofi-power-menu dmenu-bluetooth)
 
         helper=''
         if command -v yay >/dev/null 2>&1; then
@@ -93,35 +98,39 @@ case "$manager" in
                 exit 1
             fi
             echo 'No yay or paru found; building yay from the AUR.'
-            build_dir="$(mktemp -d "${TMPDIR:-/tmp}/bspwm-dots-yay.XXXXXX")"
+            build_dir="$(mktemp -d "${TMPDIR:-/tmp}/synx-shell-yay.XXXXXX")"
             trap 'rm -rf -- "$build_dir"' EXIT
             git clone --depth 1 https://aur.archlinux.org/yay.git "$build_dir/yay"
             (cd "$build_dir/yay" && makepkg -si --noconfirm)
             helper=yay
         fi
-        run_with_yes "$helper" -S --needed --noconfirm "${aur_packages[@]}"
+        helper_options=(--needed --noconfirm)
+        if pacman --help 2>&1 | grep -q -- '--ask'; then
+            helper_options+=(--ask=4)
+        fi
+        "$helper" -S "${helper_options[@]}" "${aur_packages[@]}"
         ;;
     apt)
         as_root apt-get update
-        install_packages bash git build-essential bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-bin playerctl pamixer flameshot python3
-        echo 'Matugen, Fastfetch, ueberzugpp, pywal16, and AUR-only extras are not installed by this Debian/Ubuntu package mapping.'
+        install_packages bash git build-essential iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-bin playerctl pamixer flameshot python3 xorg xinit xclip xdotool fonts-iosevka fonts-terminus
+        echo 'Matugen, Fastfetch, ueberzugpp, and AUR-only extras may need manual installation on Debian/Ubuntu.'
         ;;
     dnf)
-        install_packages bash git make gcc bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3
-        echo 'Matugen, Fastfetch, ueberzugpp, pywal16, and AUR-only extras are not installed by this Fedora package mapping.'
+        install_packages bash git make gcc iproute bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-x11-server-Xorg xorg-x11-xinit xclip xdotool iosevka-fonts terminus-fonts
+        echo 'Matugen, Fastfetch, ueberzugpp, Nerd Font variants, and AUR-only extras may need manual installation on Fedora.'
         ;;
     zypper)
-        install_packages bash git make gcc bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-tools playerctl pamixer flameshot python3
-        echo 'Matugen, Fastfetch, ueberzugpp, pywal16, and AUR-only extras are not installed by this openSUSE package mapping.'
+        install_packages bash git make gcc iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-tools playerctl pamixer flameshot python3 xorg-x11-server xinit xclip xdotool iosevka-fonts terminus-fonts
+        echo 'Matugen, Fastfetch, ueberzugpp, and AUR-only extras may need manual installation on openSUSE.'
         ;;
     xbps)
         as_root xbps-install -S
-        install_packages bash git base-devel bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3
-        echo 'Matugen, Fastfetch, ueberzugpp, pywal16, and AUR-only extras are not installed by this Void package mapping.'
+        install_packages bash git base-devel iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit xclip xdotool
+        echo 'Matugen, Fastfetch, ueberzugpp, and AUR-only extras may need manual installation on Void.'
         ;;
     apk)
-        install_packages bash git build-base bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3
-        echo 'Some desktop packages may not be available for your Alpine release; review the package manager output.'
+        install_packages bash git build-base iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit xclip xdotool
+        echo 'Some desktop packages may not be available for your Alpine release; review the warnings above.'
         ;;
 esac
 

@@ -12,7 +12,7 @@ super + @space
 
 # terminal wallpaper picker
 super + w
-	alacritty -e $HOME/.local/bin/wallfinder
+	alacritty -e "$HOME/.local/bin/wallfinder"
 
 # make sxhkd reload its configuration files:
 super + Escape
@@ -72,10 +72,10 @@ super + {p}
 
 # bemoji
 super + {e}
-	bemoji
+	BEMOJI_PICKER_CMD=rofi BEMOJI_CLIP_CMD=xclip BEMOJI_TYPE_CMD=xdotool bemoji
 
 # greenclip
-super + {c}
+super + shift + v
 	rofi -modi "clipboard:greenclip print" -show clipboard -run-command '{cmd}'
 
 # power

@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+"""Render a Matugen palette into Synx Shell's untracked runtime state."""
+
+import json
+import os
+import re
+import shutil
+import sys
+from pathlib import Path
+
+
+home = Path.home()
+state = Path(os.environ.get("XDG_STATE_HOME", home / ".local/state")) / "synx-shell"
+state.mkdir(parents=True, exist_ok=True)
+payload = json.load(sys.stdin)
+colors = payload.get("colors", {})
+palette = colors.get("dark")
+if not isinstance(palette, dict) or "source_color" not in palette:
+    palette = colors
+
+
+def color(name: str, fallback: str) -> str:
+    value = palette.get(name, fallback)
+    if isinstance(value, dict) and "color" not in value:
+        value = value.get("dark", value.get("default", value))
+    if isinstance(value, dict):
+        value = value.get("color", fallback)
+    if not isinstance(value, str) or not re.fullmatch(r"#[0-9a-fA-F]{6}", value):
+        return fallback
+    return value
+
+
+source = color("source_color", "#ffffff")
+rgb = tuple(int(source[index:index + 2], 16) for index in (1, 3, 5))
+maximum, minimum = max(rgb), min(rgb)
+neutral = maximum == 0 or (maximum - minimum) / maximum <= 0.08
+outline = "#ffffff" if neutral else color("outline", "#686868")
+outline_variant = color("outline_variant", outline)
+primary = color("primary", "#686868")
+secondary = color("secondary", primary)
+surface = color("surface", "#101010")
+surface_variant = color("surface_variant", "#252525")
+active = color("secondary_container", surface_variant)
+foreground = color("on_background", "#b9b9b9")
+foreground_alt = color("on_surface", foreground)
+alert = color("error", "#999999")
+
+(state / "polybar-colors.ini").write_text(
+    "[colors]\n"
+    f"background = {surface}\n"
+    f"background-alt = {surface_variant}\n"
+    f"background-active = {active}\n"
+    f"foreground = {foreground}\n"
+    f"foreground-alt = {foreground_alt}\n"
+    f"primary = {primary}\n"
+    f"secondary = {secondary}\n"
+    f"alert = {alert}\n"
+    f"disabled = {outline_variant}\n"
+    f"outline = {outline}\n"
+)
+(state / "rofi-colors.rasi").write_text(
+    "* {\n"
+    f"    accent: {outline};\n"
+    f"    background: {surface};\n"
+    f"    background-alt: {surface_variant};\n"
+    f"    background-active: {active};\n"
+    f"    foreground: {foreground};\n"
+    f"    foreground-alt: {foreground_alt};\n"
+    f"    muted: {outline_variant};\n"
+    "}\n"
+)
+(state / "alacritty-colors.toml").write_text(
+    "[colors.primary]\n"
+    f'background = "{surface}"\nforeground = "{foreground}"\n\n'
+    "[colors.cursor]\n"
+    f'cursor = "{outline}"\ntext = "{surface}"\n\n'
+    "[colors.normal]\n"
+    f'black = "{surface}"\nred = "{alert}"\ngreen = "{secondary}"\n'
+    f'yellow = "{primary}"\nblue = "{outline_variant}"\nmagenta = "{primary}"\n'
+    f'cyan = "{secondary}"\nwhite = "{foreground_alt}"\n\n'
+    "[colors.bright]\n"
+    f'black = "{outline_variant}"\nred = "{alert}"\ngreen = "{secondary}"\n'
+    f'yellow = "{primary}"\nblue = "{outline}"\nmagenta = "{primary}"\n'
+    f'cyan = "{secondary}"\nwhite = "{foreground_alt}"\n'
+)
+
+dunstrc = state / "dunstrc"
+if not dunstrc.exists():
+    source_dunstrc = home / ".config/dunst/dunstrc"
+    if source_dunstrc.exists():
+        shutil.copyfile(source_dunstrc, dunstrc)
+if dunstrc.exists():
+    text = dunstrc.read_text()
+    text, count = re.subn(
+        r'(?m)^(\s*frame_color\s*=\s*)"?#[0-9a-fA-F]{6}"?\s*$',
+        lambda match: f'{match.group(1)}"{outline}"',
+        text,
+        count=1,
+    )
+    if count:
+        dunstrc.write_text(text)
+
+print(outline, outline_variant)

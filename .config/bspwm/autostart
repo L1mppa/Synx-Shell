@@ -1,10 +1,23 @@
 #!/bin/sh
-wallpaper_file="$HOME/.local/state/wallfinder/last-wallpaper"
+
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/synx-shell"
+wallpaper_file="${XDG_STATE_HOME:-$HOME/.local/state}/wallfinder/last-wallpaper"
+
+start_once() {
+    process_name="$1"
+    shift
+    if ! pgrep -u "$(id -u)" -x "$process_name" >/dev/null 2>&1; then
+        "$@" &
+    fi
+}
+
+"$HOME/.local/bin/synx-shell-runtime" >/dev/null 2>&1 || true
+
 if command -v feh >/dev/null 2>&1 && [ -r "$wallpaper_file" ]; then
-    feh --bg-fill "$(cat "$wallpaper_file")" &
+    feh --bg-fill "$(cat "$wallpaper_file")" >/dev/null 2>&1 &
 fi
 
-command -v picom >/dev/null && picom -b &
-command -v dunst >/dev/null && dunst &
-command -v polybar >/dev/null && polybar main &
-command -v greenclip >/dev/null && greenclip daemon &
+command -v picom >/dev/null 2>&1 && start_once picom picom -b
+command -v dunst >/dev/null 2>&1 && start_once dunst dunst -config "$state_dir/dunstrc"
+command -v polybar >/dev/null 2>&1 && start_once polybar polybar -c "$state_dir/polybar.ini" main
+command -v greenclip >/dev/null 2>&1 && start_once greenclip greenclip daemon

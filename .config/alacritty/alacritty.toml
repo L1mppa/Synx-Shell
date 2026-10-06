@@ -8,4 +8,4 @@ decorations = "none"
 normal = { family = "Terminess Nerd Font Mono", style = "Regular" }
 
 [general]
-import = ["/home/poptart/.cache/wal/colors-alacritty.toml"]
+import = ["~/.config/alacritty/colors.toml", "~/.local/state/synx-shell/alacritty-colors.toml"]

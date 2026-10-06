@@ -1,7 +1,6 @@
 # Wallpapers
 
-Put repository wallpaper files in this folder. The Synx Shell installer copies
-all `.jpg`, `.jpeg`, `.png`, and `.webp` files here to `~/Wallpapers` (or to
-`WALLFINDER_DIR` when set), without replacing files that are already there.
-
-No wallpaper images are currently bundled in this repository.
+Place redistributable JPG, PNG, or WebP wallpaper files here. The installer
+copies them to `~/Wallpapers`; wallfinder reads from there by default. Add
+creator, source, and license information for every image to
+[CREDITS.md](CREDITS.md).

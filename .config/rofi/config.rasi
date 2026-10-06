@@ -1,4 +1,4 @@
-@import "/home/arch/.config/rofi/matugen-colors.rasi"
+@import "~/.local/state/synx-shell/rofi-colors.rasi"
 
 
 configuration {

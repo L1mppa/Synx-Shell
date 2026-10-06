@@ -1,5 +1,5 @@
 #!/bin/bash
-# commands: mrpis_control --[cmd]
+# commands: mpris_control --[cmd]
 #   cmd: select     : show a player select menu and select a player as current player
 #        title      : get song's meta info
 #        playpause  : toggle play/pause
