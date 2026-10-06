@@ -100,7 +100,7 @@ while true; do
     if command -v matugen >/dev/null 2>&1; then
         if ! matugen image "$img_selection" --mode dark --type scheme-fidelity --source-color-index 0 \
             --fallback-color "#ffffff" --dry-run --json hex \
-            | "$HOME/.local/bin/synx-theme" >/dev/null; then
+            | python3 "$HOME/.local/bin/synx-theme" >/dev/null; then
             echo "Matugen palette could not be applied for: $img_selection" >&2
             notify-send "Matugen failed" "Wallpaper applied; colors were left unchanged."
         else

@@ -24,4 +24,4 @@ bspc rule -a Screenkey manage=off
 
 # Autostart Script
  
-~/.config/bspwm/autostart &
+bash "$HOME/.config/bspwm/autostart" &

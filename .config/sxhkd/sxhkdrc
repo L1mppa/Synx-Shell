@@ -12,7 +12,7 @@ super + @space
 
 # terminal wallpaper picker
 super + w
-	alacritty -e "$HOME/.local/bin/wallfinder"
+	alacritty -e bash "$HOME/.local/bin/wallfinder"
 
 # make sxhkd reload its configuration files:
 super + Escape

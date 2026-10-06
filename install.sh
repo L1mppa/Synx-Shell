@@ -56,7 +56,7 @@ if [[ -f "$ROOT_DIR/.xinitrc" ]]; then
     install_tree "$ROOT_DIR/.xinitrc" "$HOME/.xinitrc"
 fi
 
-"$HOME/.local/bin/synx-shell-runtime"
+bash "$HOME/.local/bin/synx-shell-runtime"
 
 # Older curl installs extracted source snapshots here. All deployed links now
 # resolve to the stable checkout, so those stale snapshots can be removed.

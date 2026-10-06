@@ -11,7 +11,7 @@ start_once() {
     fi
 }
 
-"$HOME/.local/bin/synx-shell-runtime" >/dev/null 2>&1 || true
+bash "$HOME/.local/bin/synx-shell-runtime" >/dev/null 2>&1 || true
 
 if command -v feh >/dev/null 2>&1 && [ -r "$wallpaper_file" ]; then
     feh --bg-fill "$(cat "$wallpaper_file")" >/dev/null 2>&1 &
