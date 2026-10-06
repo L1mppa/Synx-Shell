@@ -1,8 +1,11 @@
 # Synx Shell
 
-Personal bspwm desktop configuration for X11. The installer deploys the
-configuration files and scripts, then keeps their source checkout at
-`~/.local/share/synx-shell/repo` so cache cleanup does not break the desktop.
+Synx Shell is a keyboard-driven X11 desktop shell built around bspwm. It brings
+together window management, a Polybar status bar, Rofi launchers, notifications,
+clipboard tools, and wallpaper-based color themes in one installable setup.
+
+The installer configures the shell and keeps its managed files in a stable
+checkout at `~/.local/share/synx-shell/repo` for updates and deployment.
 
 ## Install
 
@@ -135,15 +138,16 @@ The main modifier is **Super** (usually the Windows key).
 | `Super + Alt + Shift + H/J/K/L` | Contract the focused window from the left / bottom / top / right |
 | `Super + Arrow keys` | Move a floating window |
 
-## Included configuration
+## Components
 
-- bspwm, sxhkd, and guarded desktop autostart
-- Alacritty, Polybar, Rofi, Picom, and Dunst
-- Fastfetch and Polybar MPRIS controls
-- `wallfinder` with optional Matugen color generation
+- **Window management:** bspwm with sxhkd keyboard controls and guarded startup
+- **Desktop tools:** Alacritty, Polybar, Rofi, Picom, and Dunst
+- **Media and system info:** Polybar MPRIS controls and Fastfetch
+- **Wallpaper themes:** `wallfinder` previews wallpapers and applies Matugen colors
 
 The X11 Bemoji shortcut sets `BEMOJI_PICKER_CMD=rofi`,
 `BEMOJI_CLIP_CMD=xclip`, and `BEMOJI_TYPE_CMD=xdotool`. This matches bemoji's
 documented X11 tools; install `xclip` for clipboard copying and `xdotool` for
 typing. Some optional shortcuts also use Flameshot, Greenclip,
 `rofi-power-menu`, and `dmenu-bluetooth`.
+
