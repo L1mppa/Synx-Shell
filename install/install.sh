@@ -31,50 +31,41 @@ if [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
 fi
 
 if [[ -z "$PROJECT_ROOT" ]]; then
-    if [[ -n "${GH_TOKEN:-}" ]]; then
-        command -v curl >/dev/null 2>&1 || { echo 'Synx Shell needs curl to download its files.' >&2; exit 1; }
-        command -v tar >/dev/null 2>&1 || { echo 'Synx Shell needs tar to unpack its files.' >&2; exit 1; }
-        mkdir -p "$DATA_ROOT" "$CACHE_ROOT"
-        ARCHIVE="$(mktemp "$CACHE_ROOT/archive.XXXXXX")"
-        STAGING="$(mktemp -d "$DATA_ROOT/.repo-stage.XXXXXX")"
-        trap 'rm -f -- "${ARCHIVE:-}"; [[ -z "${STAGING:-}" ]] || rm -rf -- "$STAGING"' EXIT
+    command -v curl >/dev/null 2>&1 || { echo 'Synx Shell needs curl to download its files.' >&2; exit 1; }
+    command -v tar >/dev/null 2>&1 || { echo 'Synx Shell needs tar to unpack its files.' >&2; exit 1; }
+    mkdir -p "$DATA_ROOT" "$CACHE_ROOT"
+    ARCHIVE="$(mktemp "$CACHE_ROOT/archive.XXXXXX")"
+    STAGING="$(mktemp -d "$DATA_ROOT/.repo-stage.XXXXXX")"
+    trap 'rm -f -- "${ARCHIVE:-}"; [[ -z "${STAGING:-}" ]] || rm -rf -- "$STAGING"' EXIT
 
-        printf 'Downloading Synx Shell from %s...\n' "$REPO_SLUG"
-        if ! curl --config <(printf 'header = "Authorization: Bearer %s"\n' "$GH_TOKEN") \
-            --fail --location --silent --show-error \
-            "https://api.github.com/repos/$REPO_SLUG/tarball/$REPO_BRANCH" \
-            --output "$ARCHIVE"; then
-            echo 'Download failed. Check GH_TOKEN access and your network connection.' >&2
-            exit 1
-        fi
-
-        tar -xzf "$ARCHIVE" --strip-components=1 -C "$STAGING"
-        if ! is_project_root "$STAGING"; then
-            echo 'The downloaded archive is missing required Synx Shell files.' >&2
-            exit 1
-        fi
-
-        PREVIOUS=""
-        if [[ -e "$REPO_DIR" || -L "$REPO_DIR" ]]; then
-            PREVIOUS="$DATA_ROOT/.repo-previous.$$"
-            rm -rf -- "$PREVIOUS"
-            mv -- "$REPO_DIR" "$PREVIOUS"
-        fi
-        if ! mv -- "$STAGING" "$REPO_DIR"; then
-            [[ -z "$PREVIOUS" ]] || mv -- "$PREVIOUS" "$REPO_DIR"
-            echo 'Could not install the downloaded Synx Shell checkout.' >&2
-            exit 1
-        fi
-        STAGING=""
-        [[ -z "$PREVIOUS" ]] || rm -rf -- "$PREVIOUS"
-        PROJECT_ROOT="$REPO_DIR"
-    else
-        cat >&2 <<'EOF'
-This repository is private. Set GH_TOKEN to a GitHub token with read access to
-L1mppa/Synx-Shell, then run the curl installer again.
-EOF
+    printf 'Downloading Synx Shell from %s...\n' "$REPO_SLUG"
+    if ! curl --fail --location --silent --show-error \
+        "https://codeload.github.com/$REPO_SLUG/tar.gz/refs/heads/$REPO_BRANCH" \
+        --output "$ARCHIVE"; then
+        echo 'Download failed. Check your network connection and that the repository is public.' >&2
         exit 1
     fi
+
+    tar -xzf "$ARCHIVE" --strip-components=1 -C "$STAGING"
+    if ! is_project_root "$STAGING"; then
+        echo 'The downloaded archive is missing required Synx Shell files.' >&2
+        exit 1
+    fi
+
+    PREVIOUS=""
+    if [[ -e "$REPO_DIR" || -L "$REPO_DIR" ]]; then
+        PREVIOUS="$DATA_ROOT/.repo-previous.$$"
+        rm -rf -- "$PREVIOUS"
+        mv -- "$REPO_DIR" "$PREVIOUS"
+    fi
+    if ! mv -- "$STAGING" "$REPO_DIR"; then
+        [[ -z "$PREVIOUS" ]] || mv -- "$PREVIOUS" "$REPO_DIR"
+        echo 'Could not install the downloaded Synx Shell checkout.' >&2
+        exit 1
+    fi
+    STAGING=""
+    [[ -z "$PREVIOUS" ]] || rm -rf -- "$PREVIOUS"
+    PROJECT_ROOT="$REPO_DIR"
 fi
 
 # Keep linked configuration sources in stable user data storage, even when

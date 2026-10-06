@@ -9,16 +9,14 @@ checkout at `~/.local/share/synx-shell/repo` for updates and deployment.
 
 ## Install
 
-This repository is private. Create a GitHub token with read access to
-repository contents, then run the curl installer:
+Install Synx Shell directly from its public GitHub repository:
 
 ```sh
-read -rsp 'GitHub read token: ' GH_TOKEN; printf '\n'; export GH_TOKEN
-bash -c "$(curl --config <(printf 'header = "Authorization: Bearer %s"\n' "$GH_TOKEN") -fsSL 'https://raw.githubusercontent.com/L1mppa/Synx-Shell/main/install/install.sh')"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/L1mppa/Synx-Shell/main/install/install.sh)"
 ```
 
-The token is read by the installer and is not written to the repository. The
-installer stages downloads before replacing the stable checkout, then presents
+The installer downloads the public source archive without requiring a GitHub
+token. It stages downloads before replacing the stable checkout, then presents
 settings, dependencies, wallpaper copy, and deployment steps. Re-running it
 updates the checkout in place; deployed links continue to use the same path.
 Existing user configuration is backed up under
