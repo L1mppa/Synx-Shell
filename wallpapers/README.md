@@ -1,6 +1,6 @@
 # Wallpapers
 
-Place redistributable JPG, PNG, or WebP wallpaper files here. The installer
-copies them to `~/Wallpapers`; wallfinder reads from there by default. Add
-creator, source, and license information for every image to
-[CREDITS.md](CREDITS.md).
+A curated wallpaper collection for Synx Shell. The installer copies these
+images to `~/Wallpapers`, where wallfinder can preview and apply them. Visit
+[CREDITS.md](CREDITS.md) to discover the artists and original sources.
+
