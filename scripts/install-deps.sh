@@ -49,12 +49,13 @@ as_root() {
 install_packages() {
     case "$manager" in
         pacman)
-            local -a pacman_options=(--needed --noconfirm)
-            if pacman --help 2>&1 | grep -q -- '--ask'; then
+            local -a pacman_options=(--needed)
+            if pacman -S --help 2>&1 | grep -q -- '--ask'; then
                 pacman_options+=(--ask=4)
             else
-                echo 'This pacman does not support --ask; package conflicts will be left for pacman to handle safely.' >&2
+                echo 'This pacman does not expose --ask in install help; package conflicts will use pacman’s normal prompts.' >&2
             fi
+            printf 'Arch package installation runs pacman -Syu, which upgrades the whole system. Review the transaction and confirm it in pacman.\n' >&2
             as_root pacman -Syu "${pacman_options[@]}" "$@"
             ;;
         apt)
@@ -73,9 +74,16 @@ install_packages() {
                 fi
             done
             ;;
-        zypper) as_root zypper --non-interactive install "$@" ;;
-        xbps) as_root xbps-install -Sy "$@" ;;
-        apk) as_root apk add "$@" ;;
+        zypper|xbps|apk)
+            local package
+            for package in "$@"; do
+                case "$manager" in
+                    zypper) if ! as_root zypper --non-interactive install "$package"; then printf 'Warning: zypper could not install %s; continuing.\n' "$package" >&2; fi ;;
+                    xbps) if ! as_root xbps-install -y "$package"; then printf 'Warning: xbps could not install %s; continuing.\n' "$package" >&2; fi ;;
+                    apk) if ! as_root apk add "$package"; then printf 'Warning: apk could not install %s; continuing.\n' "$package" >&2; fi ;;
+                esac
+            done
+            ;;
     esac
 }
 
@@ -105,7 +113,7 @@ case "$manager" in
             helper=yay
         fi
         helper_options=(--needed --noconfirm)
-        if pacman --help 2>&1 | grep -q -- '--ask'; then
+        if pacman -S --help 2>&1 | grep -q -- '--ask'; then
             helper_options+=(--ask=4)
         fi
         "$helper" -S "${helper_options[@]}" "${aur_packages[@]}"
@@ -113,24 +121,25 @@ case "$manager" in
     apt)
         as_root apt-get update
         install_packages bash git build-essential iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-bin playerctl pamixer flameshot python3 xorg xinit xclip xdotool fonts-iosevka fonts-terminus
-        echo 'Matugen, Fastfetch, ueberzugpp, and AUR-only extras may need manual installation on Debian/Ubuntu.'
+        echo 'Matugen, Fastfetch, ueberzugpp, AUR-only extras, and Nerd Font variants may need manual installation on Debian/Ubuntu; Polybar glyphs may be missing.'
         ;;
     dnf)
         install_packages bash git make gcc iproute bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-x11-server-Xorg xorg-x11-xinit xclip xdotool iosevka-fonts terminus-fonts
-        echo 'Matugen, Fastfetch, ueberzugpp, Nerd Font variants, and AUR-only extras may need manual installation on Fedora.'
+        echo 'Matugen, Fastfetch, ueberzugpp, Nerd Font variants, and AUR-only extras may need manual installation on Fedora; Polybar glyphs may be missing.'
         ;;
     zypper)
         install_packages bash git make gcc iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-tools playerctl pamixer flameshot python3 xorg-x11-server xinit xclip xdotool iosevka-fonts terminus-fonts
-        echo 'Matugen, Fastfetch, ueberzugpp, and AUR-only extras may need manual installation on openSUSE.'
+        echo 'Matugen, Fastfetch, ueberzugpp, Nerd Font variants, and AUR-only extras may need manual installation on openSUSE; Polybar glyphs may be missing.'
         ;;
     xbps)
         as_root xbps-install -S
         install_packages bash git base-devel iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit xclip xdotool
-        echo 'Matugen, Fastfetch, ueberzugpp, and AUR-only extras may need manual installation on Void.'
+        echo 'Matugen, Fastfetch, ueberzugpp, Nerd Font variants, and AUR-only extras may need manual installation on Void; Polybar glyphs may be missing.'
         ;;
     apk)
         install_packages bash git build-base iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit xclip xdotool
         echo 'Some desktop packages may not be available for your Alpine release; review the warnings above.'
+        echo 'Nerd Font variants may need manual installation on Alpine; Polybar glyphs may be missing.'
         ;;
 esac
 

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 # Terminal wallpaper picker for X11/BSPWM.
+# Inspired by gustahxn's Wallfinder concept and selector UI:
+# https://github.com/gustahxn/wallfinder
+# Synx Shell uses its own X11, feh, ueberzugpp/chafa, and Matugen implementation.
+# See the repository NOTICE for attribution and the upstream MIT license.
 
 for cmd in fzf feh notify-send python3; do
     command -v "$cmd" >/dev/null 2>&1 || { echo "error: $cmd not found." >&2; exit 1; }
@@ -104,8 +108,8 @@ while true; do
             echo "Matugen palette could not be applied for: $img_selection" >&2
             notify-send "Matugen failed" "Wallpaper applied; colors were left unchanged."
         else
-            read -r outline outline_variant < <(awk -F ' = ' '$1 == "outline" || $1 == "disabled" {print $2}' \
-                "$theme_dir/polybar-colors.ini" | paste -sd ' ' -)
+            outline="$(theme_color outline)"
+            outline_variant="$(theme_color disabled)"
             command -v bspc >/dev/null 2>&1 && {
                 bspc config focused_border_color "$outline" || true
                 bspc config normal_border_color "$outline_variant" || true

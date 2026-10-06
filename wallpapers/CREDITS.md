@@ -1,11 +1,20 @@
-# Wallpaper credits and licenses
+# Wallpaper references
 
-Every wallpaper distributed in this directory must have a credit below with
-its creator, original source, and the license or explicit redistribution
-permission. Do not infer a license from a wallpaper site's hosting terms.
+The wallpaper PNGs previously stored here have been removed because their
+redistribution terms were not documented. The filenames identified these
+Wallhaven pages:
 
-| File | Creator | Original source | License / permission |
-| --- | --- | --- | --- |
+- [wallhaven-216o5y](https://wallhaven.cc/w/216o5y)
+- [wallhaven-5ypy88](https://wallhaven.cc/w/5ypy88)
+- [wallhaven-jel9mw](https://wallhaven.cc/w/jel9mw)
+- [wallhaven-lygzqq](https://wallhaven.cc/w/lygzqq)
+- [wallhaven-nryd2m](https://wallhaven.cc/w/nryd2m)
+- [wallhaven-vp2dxl](https://wallhaven.cc/w/vp2dxl)
+- [wallhaven-zp92gy](https://wallhaven.cc/w/zp92gy)
+- [wallhaven-zpvqmv](https://wallhaven.cc/w/zpvqmv)
+- [wallhaven-zpvqyj](https://wallhaven.cc/w/zpvqyj)
+- [wallhaven-zxopko](https://wallhaven.cc/w/zxopko)
 
-No wallpaper rows are listed until image assets with verifiable redistribution
-terms are added.
+These links are references only and do not assert permission to redistribute
+the images. Add a wallpaper only after confirming its creator, source, and
+license or explicit redistribution permission, then record those details here.

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-root_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
+script_path="$(readlink -f -- "${BASH_SOURCE[0]}")"
+root_dir="$(cd -- "$(dirname -- "$script_path")/../.." && pwd -P)"
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/synx-shell"
 mkdir -p "$state_dir"
 
