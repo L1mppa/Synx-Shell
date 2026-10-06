@@ -54,6 +54,9 @@ if [[ -d "$ROOT_DIR/.local" ]]; then
 fi
 if [[ -f "$ROOT_DIR/.xinitrc" ]]; then
     install_tree "$ROOT_DIR/.xinitrc" "$HOME/.xinitrc"
+    # Git's archive endpoint can deliver this new file without its executable
+    # mode; startx must be able to execute the user's .xinitrc.
+    chmod u+x "$HOME/.xinitrc"
 fi
 
 bash "$HOME/.local/bin/synx-shell-runtime"
