@@ -68,8 +68,8 @@ Rofi, Alacritty, and Dunst. Generated files live in
 `~/.local/state/synx-shell/`, outside the linked checkout. Without Matugen, the
 bundled neutral palette is used.
 
-Add wallpapers only when you have permission to redistribute them. Record each
-file's creator, source URL, and license in [wallpapers/CREDITS.md](wallpapers/CREDITS.md).
+Explore the wallpaper collection and its source pages in
+[wallpapers/CREDITS.md](wallpapers/CREDITS.md).
 
 ## Credits and license
 
