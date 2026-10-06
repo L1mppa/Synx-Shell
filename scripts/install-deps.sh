@@ -108,8 +108,14 @@ case "$manager" in
             echo 'No yay or paru found; building yay from the AUR.'
             build_dir="$(mktemp -d "${TMPDIR:-/tmp}/synx-shell-yay.XXXXXX")"
             trap 'rm -rf -- "$build_dir"' EXIT
-            git clone --depth 1 https://aur.archlinux.org/yay.git "$build_dir/yay"
-            (cd "$build_dir/yay" && makepkg -si --noconfirm)
+            if ! git clone --depth 1 https://aur.archlinux.org/yay.git "$build_dir/yay"; then
+                echo 'Could not download yay from the AUR. Install yay or paru manually, then rerun this step.' >&2
+                exit 1
+            fi
+            if ! (cd "$build_dir/yay" && makepkg -si --noconfirm); then
+                echo 'Could not build or install yay. Install yay or paru manually, then rerun this step.' >&2
+                exit 1
+            fi
             helper=yay
         fi
         helper_options=(--needed --noconfirm)
