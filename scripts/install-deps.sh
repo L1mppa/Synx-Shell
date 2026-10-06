@@ -89,7 +89,7 @@ install_packages() {
 
 case "$manager" in
     pacman)
-        repo_packages=(bash git base-devel bspwm sxhkd alacritty feh picom dunst polybar rofi fastfetch fzf chafa ueberzugpp libnotify playerctl pamixer flameshot matugen python iproute2 xorg-server xorg-xinit xclip xdotool ttf-iosevka-nerd ttf-terminus-nerd)
+        repo_packages=(bash git base-devel bspwm sxhkd alacritty feh picom dunst polybar rofi fastfetch fzf chafa ueberzugpp libnotify playerctl pamixer flameshot matugen python iproute2 xorg-server xorg-xinit xorg-setxkbmap xclip xdotool ttf-iosevka-nerd ttf-terminus-nerd)
         aur_packages=(zscroll greenclip bemoji rofi-power-menu dmenu-bluetooth)
 
         helper=''
@@ -126,24 +126,24 @@ case "$manager" in
         ;;
     apt)
         as_root apt-get update
-        install_packages bash git build-essential iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-bin playerctl pamixer flameshot python3 xorg xinit xclip xdotool fonts-iosevka fonts-terminus
+        install_packages bash git build-essential iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-bin playerctl pamixer flameshot python3 xorg xinit x11-xkb-utils xclip xdotool fonts-iosevka fonts-terminus
         echo 'Matugen, Fastfetch, ueberzugpp, AUR-only extras, and Nerd Font variants may need manual installation on Debian/Ubuntu; Polybar glyphs may be missing.'
         ;;
     dnf)
-        install_packages bash git make gcc iproute bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-x11-server-Xorg xorg-x11-xinit xclip xdotool iosevka-fonts terminus-fonts
+        install_packages bash git make gcc iproute bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-x11-server-Xorg xorg-x11-xinit xorg-x11-xkb-utils xclip xdotool iosevka-fonts terminus-fonts
         echo 'Matugen, Fastfetch, ueberzugpp, Nerd Font variants, and AUR-only extras may need manual installation on Fedora; Polybar glyphs may be missing.'
         ;;
     zypper)
-        install_packages bash git make gcc iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-tools playerctl pamixer flameshot python3 xorg-x11-server xinit xclip xdotool iosevka-fonts terminus-fonts
+        install_packages bash git make gcc iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-tools playerctl pamixer flameshot python3 xorg-x11-server xinit setxkbmap xclip xdotool iosevka-fonts terminus-fonts
         echo 'Matugen, Fastfetch, ueberzugpp, Nerd Font variants, and AUR-only extras may need manual installation on openSUSE; Polybar glyphs may be missing.'
         ;;
     xbps)
         as_root xbps-install -S
-        install_packages bash git base-devel iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit xclip xdotool
+        install_packages bash git base-devel iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit setxkbmap xclip xdotool
         echo 'Matugen, Fastfetch, ueberzugpp, Nerd Font variants, and AUR-only extras may need manual installation on Void; Polybar glyphs may be missing.'
         ;;
     apk)
-        install_packages bash git build-base iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit xclip xdotool
+        install_packages bash git build-base iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit setxkbmap xclip xdotool
         echo 'Some desktop packages may not be available for your Alpine release; review the warnings above.'
         echo 'Nerd Font variants may need manual installation on Alpine; Polybar glyphs may be missing.'
         ;;

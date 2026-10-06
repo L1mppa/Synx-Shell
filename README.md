@@ -48,8 +48,13 @@ back to its original location. Backups preserve paths such as
 
 ## Installer steps
 
-1. Choose language, X11 keyboard layout, timezone, and a 12- or 24-hour clock.
-   Search long lists with `/text`; UTC is available.
+1. Choose a locale, X11 keyboard layout, timezone, and a 12- or 24-hour clock
+   from searchable, paged menus. Locale choices come from the system locale list
+   and its supported-locale database; keyboard layouts use the installed XKB
+   list, and timezones use `timedatectl` or the installed zoneinfo database.
+   Search with `/text`, use `n` and `p` to page, and choose `0` to keep the
+   current setting. The installer saves the selections in
+   `~/.config/synx-shell/` and applies them to the Synx Shell session.
 2. Install desktop and wallpaper-picker dependencies.
 3. Copy supported repository wallpapers to `~/Wallpapers` (or
    `WALLFINDER_DIR`).
@@ -150,4 +155,3 @@ The X11 Bemoji shortcut sets `BEMOJI_PICKER_CMD=rofi`,
 documented X11 tools; install `xclip` for clipboard copying and `xdotool` for
 typing. Some optional shortcuts also use Flameshot, Greenclip,
 `rofi-power-menu`, and `dmenu-bluetooth`.
-

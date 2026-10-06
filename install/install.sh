@@ -175,12 +175,28 @@ get_timezones() {
         printf 'UTC\n'
         return 0
     fi
-    if [[ -r /usr/share/zoneinfo/zone1970.tab ]]; then
-        awk -F '\t' '!/^#/ && NF >= 3 {print $3}' /usr/share/zoneinfo/zone1970.tab
-    elif [[ -r /usr/share/zoneinfo/zone.tab ]]; then
-        awk -F '\t' '!/^#/ && NF >= 3 {print $3}' /usr/share/zoneinfo/zone.tab
+    if [[ -d /usr/share/zoneinfo ]]; then
+        find /usr/share/zoneinfo -mindepth 1 \( -type f -o -type l \) \
+            ! -path '/usr/share/zoneinfo/posix/*' \
+            ! -path '/usr/share/zoneinfo/right/*' \
+            ! -name zone.tab ! -name zone1970.tab ! -name iso3166.tab \
+            ! -name tzdata.zi ! -name leapseconds ! -name leap-seconds.list \
+            ! -name localtime ! -name posixrules -printf '%P\n'
     fi
     printf 'UTC\n'
+}
+
+get_locales() {
+    if command -v localectl >/dev/null 2>&1; then
+        localectl list-locales --no-pager 2>/dev/null || true
+    fi
+    if command -v locale >/dev/null 2>&1; then
+        locale -a 2>/dev/null || true
+    fi
+    if [[ -r /usr/share/i18n/SUPPORTED ]]; then
+        awk '$2 == "UTF-8" {print $1}' /usr/share/i18n/SUPPORTED
+    fi
+    printf 'C\nC.UTF-8\nPOSIX\n'
 }
 
 get_keyboard_layouts() {
@@ -193,54 +209,103 @@ get_keyboard_layouts() {
     fi
 }
 
+locale_is_generated() {
+    local wanted="$1"
+    command -v locale >/dev/null 2>&1 || return 1
+    locale -a 2>/dev/null | awk -v wanted="$wanted" '
+        function normalized(value) {
+            value = tolower(value)
+            sub(/\.utf8$/, ".utf-8", value)
+            return value
+        }
+        normalized($0) == normalized(wanted) { found=1 }
+        END { exit !found }
+    '
+}
+
+prepare_locale() {
+    local selected="$1" entry temporary_file
+    locale_is_generated "$selected" && return 0
+    command -v locale-gen >/dev/null 2>&1 || return 0
+    [[ -r /etc/locale.gen && -r /usr/share/i18n/SUPPORTED ]] || return 0
+
+    entry="$(awk -v wanted="$selected" '$1 == wanted && $2 == "UTF-8" {print; exit}' \
+        /usr/share/i18n/SUPPORTED)"
+    [[ -n "$entry" ]] || return 0
+    temporary_file="$(mktemp "${TMPDIR:-/tmp}/synx-shell-locale.XXXXXX")"
+    awk -v entry="$entry" '
+        {
+            uncommented = $0
+            sub(/^[[:space:]]*#[[:space:]]*/, "", uncommented)
+            if (uncommented == entry) {
+                print entry
+                found = 1
+            } else {
+                print $0
+            }
+        }
+        END { if (!found) print entry }
+    ' /etc/locale.gen > "$temporary_file"
+    if ! as_root install -m 644 "$temporary_file" /etc/locale.gen \
+        || ! as_root locale-gen; then
+        rm -f -- "$temporary_file"
+        return 1
+    fi
+    rm -f -- "$temporary_file"
+}
+
 configure_settings() {
-    local language layout timezone clock current_layout current_timezone answer
-    local -a timezones=() layouts=()
-    language="${LANG:-C.UTF-8}"
+    local language layout timezone clock clock_choice current_layout current_timezone current_language current_clock
+    local -a locales=() timezones=() layouts=() clock_choices=('12-hour (AM/PM)' '24-hour')
+    current_language="$(localectl status --no-pager 2>/dev/null | sed -n 's/^[[:space:]]*System Locale: LANG=//p' | head -n 1 || true)"
+    [[ -n "$current_language" ]] || current_language="${LANG:-C.UTF-8}"
     current_layout="$(localectl status --no-pager 2>/dev/null | sed -n 's/^[[:space:]]*X11 Layout: *//p' | head -n 1 || true)"
     timezone="$(timedatectl show --property=Timezone --value 2>/dev/null || true)"
     [[ -n "$current_layout" ]] || current_layout=us
     [[ -n "$timezone" ]] || timezone=UTC
     current_timezone="$timezone"
-
-    printf '\nRegional settings (press Enter to keep the current value).\n'
-    read -r -p "Language/locale [$language]: " answer
-    [[ -n "$answer" ]] && language="$answer"
-    mapfile -t layouts < <(get_keyboard_layouts | sed '/^[[:space:]]*$/d' | sort -u)
-    mapfile -t timezones < <(get_timezones | sed '/^[[:space:]]*$/d' | sort -u)
-    if ((${#layouts[@]})); then
-        printf 'Current X11 keyboard layout: %s\n' "$current_layout"
-        if select_setting 'Choose an X11 keyboard layout (search with /text)' layout "${layouts[@]}"; then
-            :
-        else
-            layout="$current_layout"
-        fi
-    else
-        read -r -p "Keyboard layout [$current_layout]: " answer
-        layout="${answer:-$current_layout}"
+    current_clock=12
+    if [[ -r "$HOME/.config/synx-shell/clock-format" ]]; then
+        IFS= read -r current_clock < "$HOME/.config/synx-shell/clock-format" || true
+        [[ "$current_clock" == 24 ]] || current_clock=12
     fi
-    if ((${#timezones[@]})); then
-        printf 'Current timezone: %s\n' "$timezone"
-        if select_setting 'Choose a timezone; search UTC explicitly with /UTC' timezone "${timezones[@]}"; then
-            :
-        else
-            timezone="$current_timezone"
-            [[ -n "$timezone" ]] || timezone=UTC
+
+    printf '\nChoose each setting from the available system lists. Search with /text; 0 keeps the current value.\n'
+    mapfile -t locales < <(get_locales | sed '/^[[:space:]]*$/d' | sort -fu)
+    [[ " ${locales[*]} " == *" $current_language "* ]] || locales+=("$current_language")
+    mapfile -t layouts < <(get_keyboard_layouts | sed '/^[[:space:]]*$/d' | sort -u)
+    [[ " ${layouts[*]} " == *" $current_layout "* ]] || layouts+=("$current_layout")
+    mapfile -t timezones < <(get_timezones | sed '/^[[:space:]]*$/d' | sort -u)
+    [[ " ${timezones[*]} " == *" $current_timezone "* ]] || timezones+=("$current_timezone")
+    language="$current_language"
+    layout="$current_layout"
+    timezone="$current_timezone"
+    clock="$current_clock"
+
+    if select_setting 'Choose a language/locale' language "${locales[@]}"; then :; fi
+    select_setting 'Choose an X11 keyboard layout' layout "${layouts[@]}" || true
+    select_setting 'Choose a timezone' timezone "${timezones[@]}" || true
+    if [[ "$current_clock" == 24 ]]; then
+        clock_choices=('12-hour (AM/PM)' '24-hour')
+    fi
+    if select_setting 'Choose the Polybar clock format' clock_choice "${clock_choices[@]}"; then
+        [[ "$clock_choice" == '24-hour' ]] && clock=24 || clock=12
+    fi
+
+    if [[ "$language" != "$current_language" ]]; then
+        if ! prepare_locale "$language"; then
+            echo 'Could not generate the selected locale; it is saved for the Synx Shell session.' >&2
+        elif command -v localectl >/dev/null 2>&1 && ! as_root localectl set-locale "LANG=$language"; then
+            echo 'Could not set the system locale; it is saved for the Synx Shell session.' >&2
         fi
-    else
-        read -r -p "Timezone [$timezone]: " answer
-        timezone="${answer:-$timezone}"
     fi
 
     if command -v localectl >/dev/null 2>&1; then
-        if [[ "$language" != "${LANG:-C.UTF-8}" ]] && ! as_root localectl set-locale "LANG=$language"; then
-            echo 'Could not set the system locale; check that it is generated on this system.' >&2
-        fi
         if [[ "$layout" != "$current_layout" ]] && ! as_root localectl set-x11-keymap "$layout"; then
             echo 'Could not set the X11 keyboard layout.' >&2
         fi
     else
-        echo 'localectl is unavailable; language and keyboard settings were not changed.' >&2
+        echo 'localectl is unavailable; locale and keyboard selections will apply to the Synx Shell session.' >&2
     fi
 
     if command -v timedatectl >/dev/null 2>&1 && [[ "$timezone" != "$(timedatectl show --property=Timezone --value 2>/dev/null || true)" ]]; then
@@ -248,18 +313,13 @@ configure_settings() {
             echo 'Could not set the timezone.' >&2
         fi
     elif ! command -v timedatectl >/dev/null 2>&1; then
-        echo 'timedatectl is unavailable; the system timezone was not changed.' >&2
+        echo 'timedatectl is unavailable; the timezone selection will apply to the Synx Shell session.' >&2
     fi
 
-    while :; do
-        read -r -p 'Polybar clock format, 12 or 24 [12]: ' clock
-        clock="${clock:-12}"
-        if [[ "$clock" == 12 || "$clock" == 24 ]]; then
-            break
-        fi
-        echo 'Choose 12 or 24.' >&2
-    done
     mkdir -p "$HOME/.config/synx-shell"
+    printf '%s\n' "$language" > "$HOME/.config/synx-shell/locale"
+    printf '%s\n' "$layout" > "$HOME/.config/synx-shell/keyboard-layout"
+    printf '%s\n' "$timezone" > "$HOME/.config/synx-shell/timezone"
     printf '%s\n' "$clock" > "$HOME/.config/synx-shell/clock-format"
     echo 'Regional settings saved.'
 }
