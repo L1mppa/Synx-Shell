@@ -1,8 +1,8 @@
-# Wallpaper references
+# Wallpaper credits
 
-The wallpaper PNGs previously stored here have been removed because their
-redistribution terms were not documented. The filenames identified these
-Wallhaven pages:
+The bundled Wallhaven images still need creator and license details. Their
+IDs link to their original pages; fill in creator and license or permission
+information before redistributing them publicly.
 
 - [wallhaven-216o5y](https://wallhaven.cc/w/216o5y)
 - [wallhaven-5ypy88](https://wallhaven.cc/w/5ypy88)
@@ -15,6 +15,5 @@ Wallhaven pages:
 - [wallhaven-zpvqyj](https://wallhaven.cc/w/zpvqyj)
 - [wallhaven-zxopko](https://wallhaven.cc/w/zxopko)
 
-These links are references only and do not assert permission to redistribute
-the images. Add a wallpaper only after confirming its creator, source, and
-license or explicit redistribution permission, then record those details here.
+These links are references only. Add each creator and license or explicit
+redistribution permission here before making the repository public.

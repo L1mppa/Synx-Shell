@@ -25,76 +25,7 @@ On Arch Linux, the dependency step performs a full `pacman -Syu` transaction
 and uses `yay` or `paru` for AUR packages. It builds `yay` if neither helper is
 installed. The Arch package step runs a full `pacman -Syu` transaction, so it
 may upgrade existing system packages; review and confirm pacman's transaction.
-It installs an X server, `xinit`, Iosevka Nerd Font Mono, and Terminess Nerd
-Font Mono. Pacman builds that expose `--ask` receive `--ask=4` for package
-conflict prompts. On Debian/Ubuntu and Fedora, packages install one at a time
-so an unavailable package (such as Alacritty on an older release) is reported
-and does not stop the rest. Nerd Font variants may need manual installation on
-non-Arch systems, so some Polybar glyphs may be missing.
-Deployment includes an `~/.xinitrc` that starts bspwm, so after installing the
-X server and xinit you can launch from a TTY with `startx`.
-
-## Installer steps
-
-1. Choose language, X11 keyboard layout, timezone, and a 12- or 24-hour clock.
-   Search long lists with `/text`; UTC is available.
-2. Install desktop and wallpaper-picker dependencies.
-3. Copy supported repository wallpapers to `~/Wallpapers` (or
-   `WALLFINDER_DIR`).
-4. Deploy Synx Shell configuration.
-
-## Wallpaper picker and colors
-
-Launch the picker with **Super + W**. In an X11 terminal, `ueberzugpp` draws a
-sharp image preview. If it is unavailable, `chafa` provides a terminal preview;
-the picker works with either one. `feh` applies the wallpaper. Matugen is the
-single dynamic color source: its palette updates bspwm borders, Polybar,
-Rofi, Alacritty, and Dunst. Generated files live in
-`~/.local/state/synx-shell/`, outside the linked checkout. Without Matugen, the
-bundled neutral palette is used.
-
-Add wallpapers only when you have permission to redistribute them. Record each
-file's creator, source URL, and license in [wallpapers/CREDITS.md](wallpapers/CREDITS.md).
-Previously bundled Wallhaven images were removed while redistribution rights
-were unverified; CREDITS.md links to their original pages.
-
-## Credits and license
-
-The wallpaper picker's concept and selector UI were inspired by
-[gustahxn/Wallfinder](https://github.com/gustahxn/wallfinder). Synx Shell has
-its own X11/bspwm implementation: feh applies wallpapers, ueberzugpp provides
-sharp previews with chafa as a fallback, and Matugen updates the shell's
-runtime color files and bspwm borders. The upstream project uses a separate
-Wayland/swaybg implementation; Synx Shell does not include its source code.
-See [NOTICE](NOTICE) for the upstream MIT license text and attribution.
-
-Synx Shell is available under the [MIT License](LICENSE).
-
-## Keybindings
-
-The main modifier is **Super** (usually the Windows key).
-
-### Launchers and actions
-
-| Key | Action |
-| --- | --- |
-| `Super + Enter` | Open Alacritty |
-| `Super + Space` | Open the Rofi app and window launcher |
-| `Super + W` | Open the wallpaper picker |
-| `Super + P` | Start Flameshot region capture |
-| `Super + E` | Open Bemoji using Rofi, xclip, and xdotool |
-| `Super + Shift + V` | Open the Greenclip clipboard menu |
-| `Super + S` | Open the Rofi power menu |
-| `Super + B` | Open Bluetooth controls |
-| `Super + N` | Send a test notification |
-| `Super + Esc` | Reload sxhkd keybindings |
-
-### Window and desktop control
-
-| Key | Action |
-| --- | --- |
-| `Super + Q` | Close the focused window |
-| `Super + Shift + Q` | Kill the focused window |
+It installs an X server, `xinit`, Iosevka Nerd Font Mono, an…764 tokens truncated…
 | `Super + Alt + Q` | Quit bspwm |
 | `Super + Alt + R` | Restart bspwm |
 | `Super + T` | Set tiled state |
