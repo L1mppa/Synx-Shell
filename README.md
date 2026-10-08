@@ -7,6 +7,20 @@ clipboard tools, and wallpaper-based color themes in one installable setup.
 The installer configures the shell and keeps its managed files in a stable
 checkout at `~/.local/share/synx-shell/repo` for updates and deployment.
 
+> **Beta:** Synx Shell is under active development. Expect configuration and
+> installer changes between releases.
+
+## Compatibility and test status
+
+Arch Linux is the only distribution tested so far. Debian/Ubuntu, Fedora,
+openSUSE, Void Linux, and Alpine Linux are untested; package availability and
+desktop integration may differ on those systems.
+
+The tested machine is an Intel NUC with a Core i3-4010U, integrated Intel HD
+Graphics 4400, and 8 GB of RAM (7.46 GiB available to Linux). In the included
+desktop snapshot, btop reports 1.14 GiB used and 6.31 GiB available.
+
+
 ## Screenshots
 
 ### Wallpaper picker
@@ -71,6 +85,8 @@ back to its original location. Backups preserve paths such as
 4. Deploy Synx Shell configuration.
 
 ## Wallpaper picker and colors
+
+Picom 12 or newer is required for the bundled window-rule syntax.
 
 Launch the picker with **Super + W**. In an X11 terminal, `ueberzugpp` draws a
 sharp image preview. If it is unavailable, `chafa` provides a terminal preview;
