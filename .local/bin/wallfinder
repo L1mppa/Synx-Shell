@@ -16,7 +16,23 @@ fi
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/wallfinder"
 theme_dir="${XDG_STATE_HOME:-$HOME/.local/state}/synx-shell"
 wall_dir="${WALLFINDER_DIR:-$HOME/Wallpapers}"
+preview_socket=''
+preview_pid_file=''
 mkdir -p "$state_dir" "$theme_dir"
+
+close_preview() {
+    if [[ -n "$preview_socket" ]]; then
+        ueberzugpp cmd -s "$preview_socket" -a exit >/dev/null 2>&1 || true
+        preview_socket=''
+    fi
+    if [[ -n "$preview_pid_file" ]]; then
+        rm -f -- "$preview_pid_file"
+        preview_pid_file=''
+    fi
+}
+trap close_preview EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 theme_color() {
     local key="$1" value
@@ -41,6 +57,7 @@ pick_wallpaper() {
         mkdir -p "$runtime_dir"
         export UEBERZUGPP_TMPDIR="$runtime_dir"
         pid_file="$(mktemp "$runtime_dir/.wallfinder-ueberzugpp.XXXXXX")"
+        preview_pid_file="$pid_file"
         rm -f -- "$pid_file"
 
         if ueberzugpp layer --no-stdin --silent --use-escape-codes --output x11 --pid-file "$pid_file" \
@@ -48,8 +65,10 @@ pick_wallpaper() {
             && [[ -s "$pid_file" ]]; then
             pid="$(<"$pid_file")"
             socket="$runtime_dir/ueberzugpp-$pid.socket"
+            preview_socket="$socket"
             if WALLFINDER_UEBERZUG_SOCKET="$socket" fzf \
                 --read0 --print0 \
+                --delimiter='/' --with-nth=-1 \
                 --prompt="select wallpaper > " \
                 --layout=reverse --border \
                 --color="border:$outline,prompt:$primary,pointer:$primary,marker:$primary,info:$disabled,hl:$primary,hl+:$primary" \
@@ -60,11 +79,11 @@ pick_wallpaper() {
             else
                 result=$?
             fi
-            ueberzugpp cmd -s "$socket" -a exit >/dev/null 2>&1 || true
-            rm -f -- "$pid_file"
+            close_preview
             return "$result"
         fi
         rm -f -- "$pid_file"
+        preview_pid_file=''
     fi
 
     if ! command -v chafa >/dev/null 2>&1; then
@@ -73,6 +92,7 @@ pick_wallpaper() {
     fi
     fzf \
         --read0 --print0 \
+        --delimiter='/' --with-nth=-1 \
         --prompt="select wallpaper > " \
         --layout=reverse --border \
         --color="border:$outline,prompt:$primary,pointer:$primary,marker:$primary,info:$disabled,hl:$primary,hl+:$primary" \

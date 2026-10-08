@@ -231,7 +231,7 @@
     enable_recursive_icon_lookup = true
 
     # Set icon theme (only used for recursive icon lookup)
-    icon_theme = "Delft-Darkest, Adwaita"
+    icon_theme = "Papirus-Dark, Adwaita"
     # You can also set multiple icon themes, with the leftmost one being used first.
     # icon_theme = "Adwaita, breeze"
 
@@ -261,7 +261,7 @@
     ### Misc/Advanced ###
 
     # dmenu path.
-    dmenu = /usr/bin/dmenu -p dunst:
+    dmenu = /usr/bin/rofi -dmenu -p dunst:
 
     # Browser for opening urls in context menu.
     browser = /usr/bin/xdg-open
@@ -360,14 +360,14 @@
 [urgency_low]
     # IMPORTANT: colors have to be defined in quotation marks.
     # Otherwise the "#" and following would be interpreted as a comment.
-    background = "#000000"
+    background = "#101010"
     foreground = "#ffffff"
     timeout = 10
     # Icon for notifications with low urgency
     # default_icon = dialog-information
 
 [urgency_normal]
-    background = "#000000"
+    background = "#101010"
     foreground = "#ffffff"
     timeout = 10
     override_pause_level = 30
@@ -375,7 +375,7 @@
     # default_icon = dialog-information
 
 [urgency_critical]
-    background = "#900000"
+    background = "#252525"
     foreground = "#ffffff"
     frame_color = "#ff0000"
     timeout = 0

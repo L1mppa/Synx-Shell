@@ -55,7 +55,12 @@ install_packages() {
             else
                 echo 'This pacman does not expose --ask in install help; package conflicts will use pacman’s normal prompts.' >&2
             fi
-            printf 'Arch package installation runs pacman -Syu, which upgrades the whole system. Review the transaction and confirm it in pacman.\n' >&2
+            printf 'Arch package installation runs pacman -Syu, which upgrades the whole system.\n' >&2
+            read -r -p 'Review the transaction carefully. Continue? [y/N] ' answer
+            case "$answer" in
+                y|Y|yes|YES) ;;
+                *) echo 'Package installation cancelled.' >&2; return 1 ;;
+            esac
             as_root pacman -Syu "${pacman_options[@]}" "$@"
             ;;
         apt)
@@ -89,7 +94,7 @@ install_packages() {
 
 case "$manager" in
     pacman)
-        repo_packages=(bash git base-devel bspwm sxhkd alacritty feh picom dunst polybar rofi fastfetch fzf chafa ueberzugpp libnotify playerctl pamixer flameshot matugen python iproute2 xorg-server xorg-xinit xorg-setxkbmap xclip xdotool ttf-iosevka-nerd ttf-terminus-nerd)
+        repo_packages=(bash git base-devel bspwm sxhkd alacritty feh picom dunst polybar rofi fastfetch fzf chafa ueberzugpp libnotify playerctl pamixer flameshot matugen python iproute2 xorg-server xorg-xinit xorg-setxkbmap xclip xdotool ttf-iosevka-nerd ttf-terminus-nerd wireless_tools networkmanager bluez bluez-utils pipewire-pulse papirus-icon-theme noto-fonts dbus)
         aur_packages=(zscroll greenclip bemoji rofi-power-menu dmenu-bluetooth)
 
         helper=''
@@ -112,13 +117,13 @@ case "$manager" in
                 echo 'Could not download yay from the AUR. Install yay or paru manually, then rerun this step.' >&2
                 exit 1
             fi
-            if ! (cd "$build_dir/yay" && makepkg -si --noconfirm); then
+            if ! (cd "$build_dir/yay" && makepkg -si); then
                 echo 'Could not build or install yay. Install yay or paru manually, then rerun this step.' >&2
                 exit 1
             fi
             helper=yay
         fi
-        helper_options=(--needed --noconfirm)
+        helper_options=(--needed)
         if pacman -S --help 2>&1 | grep -q -- '--ask'; then
             helper_options+=(--ask=4)
         fi
@@ -126,24 +131,24 @@ case "$manager" in
         ;;
     apt)
         as_root apt-get update
-        install_packages bash git build-essential iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-bin playerctl pamixer flameshot python3 xorg xinit x11-xkb-utils xclip xdotool fonts-iosevka fonts-terminus
-        echo 'Matugen, Fastfetch, ueberzugpp, AUR-only extras, and Nerd Font variants may need manual installation on Debian/Ubuntu; Polybar glyphs may be missing.'
+        install_packages bash git build-essential iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-bin playerctl pamixer flameshot python3 xorg xinit x11-xkb-utils xclip xdotool fonts-iosevka fonts-terminus wireless-tools network-manager bluez bluez-tools pipewire-pulse papirus-icon-theme fonts-noto-core dbus-x11
+        echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu, and dmenu-bluetooth may need manual installation on Debian/Ubuntu.'
         ;;
     dnf)
-        install_packages bash git make gcc iproute bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-x11-server-Xorg xorg-x11-xinit xorg-x11-xkb-utils xclip xdotool iosevka-fonts terminus-fonts
-        echo 'Matugen, Fastfetch, ueberzugpp, Nerd Font variants, and AUR-only extras may need manual installation on Fedora; Polybar glyphs may be missing.'
+        install_packages bash git make gcc iproute bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-x11-server-Xorg xorg-x11-xinit xorg-x11-xkb-utils xclip xdotool iosevka-fonts terminus-fonts wireless-tools NetworkManager bluez bluez-tools pipewire-pulseaudio papirus-icon-theme google-noto-sans-mono-fonts dbus-x11
+        echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu, and dmenu-bluetooth may need manual installation on Fedora.'
         ;;
     zypper)
-        install_packages bash git make gcc iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-tools playerctl pamixer flameshot python3 xorg-x11-server xinit setxkbmap xclip xdotool iosevka-fonts terminus-fonts
-        echo 'Matugen, Fastfetch, ueberzugpp, Nerd Font variants, and AUR-only extras may need manual installation on openSUSE; Polybar glyphs may be missing.'
+        install_packages bash git make gcc iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-tools playerctl pamixer flameshot python3 xorg-x11-server xinit setxkbmap xclip xdotool iosevka-fonts terminus-fonts wireless-tools NetworkManager bluez bluez-tools pipewire-pulseaudio papirus-icon-theme google-noto-sans-mono-fonts dbus-1-x11
+        echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu, and dmenu-bluetooth may need manual installation on openSUSE.'
         ;;
     xbps)
         as_root xbps-install -S
-        install_packages bash git base-devel iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit setxkbmap xclip xdotool
-        echo 'Matugen, Fastfetch, ueberzugpp, Nerd Font variants, and AUR-only extras may need manual installation on Void; Polybar glyphs may be missing.'
+        install_packages bash git base-devel iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit setxkbmap xclip xdotool wireless_tools NetworkManager bluez bluez-utils pipewire-pulse papirus-icon-theme noto-fonts-ttf dbus-x11
+        echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu, and dmenu-bluetooth may need manual installation on Void.'
         ;;
     apk)
-        install_packages bash git build-base iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit setxkbmap xclip xdotool
+        install_packages bash git build-base iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit setxkbmap xclip xdotool wireless-tools networkmanager bluez bluez-openrc pipewire-pulse papirus-icon-theme font-noto dbus-x11
         echo 'Some desktop packages may not be available for your Alpine release; review the warnings above.'
         echo 'Nerd Font variants may need manual installation on Alpine; Polybar glyphs may be missing.'
         ;;

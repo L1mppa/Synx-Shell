@@ -12,7 +12,7 @@ super + @space
 
 # terminal wallpaper picker
 super + w
-	alacritty -e bash "$HOME/.local/bin/wallfinder"
+	alacritty --class Wallfinder,wallfinder -e bash "$HOME/.local/bin/wallfinder"
 
 # make sxhkd reload its configuration files:
 super + Escape
@@ -82,13 +82,28 @@ super + shift + v
 super + {s}
 	rofi -show power-menu -modi power-menu:rofi-power-menu
 
-# send test notification
-super + {n}
-	notify-send Hello "This is a test"
-
 # bluetooth
 super + {b}
 	DMENU_BLUETOOTH_LAUNCHER=rofi dmenu-bluetooth
+
+# media keys
+XF86AudioPlay
+	playerctl play-pause
+
+XF86AudioNext
+	playerctl next
+
+XF86AudioPrev
+	playerctl previous
+
+XF86AudioRaiseVolume
+	pamixer -i 5
+
+XF86AudioLowerVolume
+	pamixer -d 5
+
+XF86AudioMute
+	pamixer -t
 
 # focus the next/previous window in the current desktop
 super + {_,shift + }c

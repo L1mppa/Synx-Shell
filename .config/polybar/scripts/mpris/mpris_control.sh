@@ -1,155 +1,83 @@
-#!/bin/bash
-# commands: mpris_control --[cmd]
-#   cmd: select     : show a player select menu and select a player as current player
-#        title      : get song's meta info
-#        playpause  : toggle play/pause
-#        next       : switch to next music
-#        previous   : switch to last music
-#        icon       : get icon of players
-#        process    : get process
-#        vc         : volume control
+#!/usr/bin/env bash
+set -u
 
-PARENT_BAR_PID=$(pgrep -a "polybar" | cut -d" " -f1)
-PLAYERS=($(playerctl -l 2>/dev/null))
-FORMAT="'{{ title }} - {{ artist }}'"
-FORMAT_PROCESS="'{{ duration(position)}}/{{duration(mpris:length) }}'"
-PLAYER_STATUS=-1
-CUR_PLAYER=$(cat ~/.config/polybar/.curplayer.log)
-EXIT_CODE=$?
+script_path="$(readlink -f -- "${BASH_SOURCE[0]}")"
+player_file="${XDG_CONFIG_HOME:-$HOME/.config}/polybar/.curplayer.log"
+mkdir -p "$(dirname -- "$player_file")"
 
-update_players() {
-    PLAYERS=($(playerctl -l 2>/dev/null))
+list_players() {
+    mapfile -t players < <(playerctl -l 2>/dev/null)
 }
 
-init_player() {
-    update_players
-    if [ ${#PLAYERS[*]} -eq 0 ]; then
-        CUR_PLAYER=""
-        echo ${CUR_PLAYER} >~/.config/polybar/.curplayer.log
-        return 1
-    else
-        CUR_PLAYER=$PLAYERS
-        echo ${CUR_PLAYER} >~/.config/polybar/.curplayer.log
+select_current_player() {
+    list_players
+    current_player=''
+    if [[ -r "$player_file" ]]; then
+        IFS= read -r current_player < "$player_file" || true
     fi
-    return 0
-}
-
-update_state() {
-    playerctl --player=$CUR_PLAYER status 1>/dev/null 2>&1
-    if [ $? -eq 1 ]; then
-        init_player
-    elif [ ${#CUR_PLAYER} -eq 0 ]; then
-        init_player
-    fi
-    staue=$(playerctl --player=$CUR_PLAYER status 2>/dev/null)
-    if [ ${#CUR_PLAYER} -eq 0 ]; then
-        PLAYER_STATUS=-1
-    elif [ "$staue" == "Stopped" ]; then
-        PLAYER_STATUS=0
-    else
-        PLAYER_STATUS=1
+    if [[ ! " ${players[*]} " == *" $current_player "* ]]; then
+        current_player="${players[0]:-}"
+        printf '%s\n' "$current_player" > "$player_file"
     fi
 }
 
-get_title() {
-    cmd="playerctl --player=${CUR_PLAYER} metadata --format $FORMAT 2>/dev/null"
-    eval $cmd
-}
-
-toggle_play() {
-    playerctl --player=${CUR_PLAYER} play-pause 2>/dev/null
-}
-
-to_next() {
-    playerctl --player=${CUR_PLAYER} next 2>/dev/null
-}
-
-to_previous() {
-    playerctl --player=${CUR_PLAYER} previous 2>/dev/null
-}
-
-to_volume() {
-    playerctl --player=${CUR_PLAYER} volume $1 2>/dev/null
-}
-
-get_process() {
-    cmd="playerctl --player=${CUR_PLAYER} metadata --format $FORMAT_PROCESS 2>/dev/null"
-    proc=$(eval $cmd)
-    if [ "$proc" = "0:00/" ]; then
-        echo ""
-    else
-        echo "$proc"
-    fi
-}
-
-show_menu_selector() {
-    update_players
-    options=""
-    for i in "${PLAYERS[@]}"; do
-        t=$(get_icon $i)
-        options="${options}${t} ${i}*"
-    done
-    options="${options}󰈆 Exit"
-    menu="$(rofi -sep "*" -dmenu -i -p "Choose Player" -location 0 -hide-scrollbar -line-padding 4 -padding 20 -kb-row-tab "" <<<${options})"
-    menu=${menu:2}
-    if [ menu == "Exit" ]; then
-        return
-    elif [ ${#menu} -eq 0 ]; then
-        return
-    else
-        CUR_PLAYER=$menu
-        echo ${CUR_PLAYER} >~/.config/polybar/.curplayer.log
-    fi
-}
-
-menu_icon() {
-    get_icon $CUR_PLAYER
-}
-
-get_icon() {
-    res=""
-    case $1 in
-    *chrom*)
-        res=""
-        ;;
-    *firefox*)
-        res=""
-        ;;
-    *spotify*)
-        res=""
-        ;;
-    *vlc*)
-        res="嗢"
-        ;;
+player_icon() {
+    case "${1,,}" in
+        *chrom*) printf '' ;;
+        *firefox*) printf '' ;;
+        *spotify*) printf '' ;;
+        *vlc*) printf '嗢' ;;
+        *) printf '♫' ;;
     esac
-    echo $res
 }
 
-update_state
-if [ "$1" == "--icon" ]; then
-    menu_icon
-elif [ "$1" == "--select" ]; then
-    show_menu_selector
-elif [ "$1" == "--title" ]; then
-    if [ $PLAYER_STATUS -eq -1 ]; then
-        echo "PLAYER NOT FOUND"
-    elif [ $PLAYER_STATUS -eq 0 ]; then
-        echo "NO MUSIC IS PLAYING"
-    else
-        get_title
-    fi
-elif [ "$1" == "--process" ]; then
-    if [ $PLAYER_STATUS -eq 1 ]; then
-        get_process
-    else
-        echo ""
-    fi
-elif [ "$1" == "--playpause" ]; then
-    toggle_play
-elif [ "$1" == "--next" ]; then
-    to_next
-elif [ "$1" == "--previous" ]; then
-    to_previous
-elif [ "$1" == "--vc" ]; then
-    to_volume $2
-fi
+select_current_player
+
+case "${1:-}" in
+    --select)
+        list_players
+        (("${#players[@]}" > 0)) || exit 0
+        options=''
+        for player in "${players[@]}"; do
+            options+="$(player_icon "$player")"$'\t'"$player"$'\n'
+        done
+        options+=$'󰈆\tExit\n'
+        choice="$(printf '%s' "$options" | rofi -dmenu -i -p 'Choose Player' -location 0 -hide-scrollbar -line-padding 4 -padding 20 -display-columns 2)" || exit 0
+        choice="${choice#*$'\t'}"
+        if [[ "$choice" == Exit || -z "$choice" ]]; then
+            exit 0
+        fi
+        printf '%s\n' "$choice" > "$player_file"
+        ;;
+    --icon)
+        [[ -n "$current_player" ]] && player_icon "$current_player"
+        ;;
+    --controls)
+        [[ -n "$current_player" ]] || exit 0
+        printf '%%{A1:bash %s --previous:}%%{A} %%{A1:bash %s --playpause:}󰐎%%{A} %%{A1:bash %s --next:}%%{A}\n' "$script_path" "$script_path" "$script_path"
+        ;;
+    --title)
+        if [[ -z "$current_player" ]]; then
+            printf 'PLAYER NOT FOUND\n'
+        else
+            playerctl --player="$current_player" metadata --format '{{ title }} - {{ artist }}' 2>/dev/null || printf 'NO MUSIC IS PLAYING\n'
+        fi
+        ;;
+    --process)
+        [[ -n "$current_player" ]] || exit 0
+        playerctl --player="$current_player" metadata --format '{{ duration(position) }}/{{ duration(mpris:length) }}' 2>/dev/null || true
+        ;;
+    --playpause|--next|--previous)
+        [[ -n "$current_player" ]] || exit 0
+        case "$1" in
+            --playpause) action=play-pause ;;
+            --next) action=next ;;
+            --previous) action=previous ;;
+        esac
+        playerctl --player="$current_player" "$action" 2>/dev/null || true
+        ;;
+    --vc)
+        [[ -n "$current_player" ]] || exit 0
+        playerctl --player="$current_player" volume "${2:-0}" 2>/dev/null || true
+        ;;
+esac

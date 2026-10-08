@@ -2,7 +2,12 @@
 
 pgrep -x sxhkd > /dev/null || sxhkd &
 
-bspc monitor -d 1 2 3 4 5 6 7 8 9 10
+desktop_names='1 2 3 4 5 6 7 8 9 10'
+bspc query -M | while IFS= read -r monitor; do
+    # bspc expects each desktop name as a separate argument.
+    # shellcheck disable=SC2086
+    bspc monitor "$monitor" -d $desktop_names
+done
 
 bspc config border_width         2
 bspc config window_gap          15
@@ -16,11 +21,7 @@ bspc config split_ratio          0.52
 bspc config borderless_monocle   false
 bspc config gapless_monocle      false
 
-bspc rule -a Gimp desktop='^8' state=floating follow=on
-bspc rule -a Chromium desktop='^2'
-bspc rule -a mplayer2 state=floating
-bspc rule -a Kupfer.py focus=on
-bspc rule -a Screenkey manage=off
+bspc rule -a Wallfinder state=floating center=on
 
 # Autostart Script
  

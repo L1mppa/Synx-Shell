@@ -19,6 +19,29 @@ if [[ ! -s "$state_dir/dunstrc" ]]; then
     cp -- "$root_dir/.config/dunst/dunstrc" "$state_dir/dunstrc"
 fi
 
+# Dunst uses pixel offsets while Polybar's height may be specified in points.
+# Keep the notification stack below the bar with an 8px gap.
+bar_height="$(awk -F= '/^[[:space:]]*height[[:space:]]*=/ {gsub(/[[:space:]]/, "", $2); print $2; exit}' \
+    "$root_dir/.config/polybar/config.ini")"
+dpi=96
+if command -v xrdb >/dev/null 2>&1; then
+    detected_dpi="$(xrdb -query 2>/dev/null | awk '$1 == "Xft.dpi:" {print $2; exit}')"
+    [[ "$detected_dpi" =~ ^[0-9]+$ ]] && dpi="$detected_dpi"
+fi
+case "$bar_height" in
+    *pt) bar_pixels=$(( (${bar_height%pt} * dpi + 71) / 72 )) ;;
+    *px) bar_pixels="${bar_height%px}" ;;
+    *) bar_pixels=30 ;;
+esac
+dunst_offset=$((bar_pixels + 8))
+dunst_temporary="$(mktemp "$state_dir/.dunstrc.XXXXXX")"
+awk -v offset="$dunst_offset" '
+    /^[[:space:]]*offset[[:space:]]*=/ { print "    offset = (0, " offset ")"; next }
+    { print }
+' "$state_dir/dunstrc" > "$dunst_temporary"
+chmod 644 "$dunst_temporary"
+mv -f -- "$dunst_temporary" "$state_dir/dunstrc"
+
 clock_format="12"
 if [[ -r "$HOME/.config/synx-shell/clock-format" ]]; then
     clock_format="$(<"$HOME/.config/synx-shell/clock-format")"
@@ -32,12 +55,12 @@ awk -v format="$clock_format" '
     /^\[/ { in_date=0 }
     in_date && /^[[:space:]]*date[[:space:]]*=/ {
         if (format == 24) print "date = %H:%M"
-        else print "date = %l:%M %P"
+        else print "date = %-I:%M %P"
         next
     }
     in_date && /^[[:space:]]*date-alt[[:space:]]*=/ {
         if (format == 24) print "date-alt = %Y-%m-%d %H:%M:%S"
-        else print "date-alt = %Y-%m-%d %I:%M:%S %p"
+        else print "date-alt = %Y-%m-%d %-I:%M:%S %p"
         next
     }
     { print }

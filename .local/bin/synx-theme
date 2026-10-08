@@ -44,6 +44,8 @@ active = color("secondary_container", surface_variant)
 foreground = color("on_background", "#b9b9b9")
 foreground_alt = color("on_surface", foreground)
 alert = color("error", "#999999")
+ansi_magenta = alert if alert.lower() != primary.lower() else surface_variant
+ansi_cyan = outline if outline.lower() != secondary.lower() else foreground_alt
 
 (state / "polybar-colors.ini").write_text(
     "[colors]\n"
@@ -76,11 +78,11 @@ alert = color("error", "#999999")
     f'cursor = "{outline}"\ntext = "{surface}"\n\n'
     "[colors.normal]\n"
     f'black = "{surface}"\nred = "{alert}"\ngreen = "{secondary}"\n'
-    f'yellow = "{primary}"\nblue = "{outline_variant}"\nmagenta = "{primary}"\n'
-    f'cyan = "{secondary}"\nwhite = "{foreground_alt}"\n\n'
+    f'yellow = "{primary}"\nblue = "{outline_variant}"\nmagenta = "{ansi_magenta}"\n'
+    f'cyan = "{ansi_cyan}"\nwhite = "{foreground_alt}"\n\n'
     "[colors.bright]\n"
     f'black = "{outline_variant}"\nred = "{alert}"\ngreen = "{secondary}"\n'
-    f'yellow = "{primary}"\nblue = "{outline}"\nmagenta = "{primary}"\n'
+    f'yellow = "{primary}"\nblue = "{outline}"\nmagenta = "{ansi_magenta}"\n'
     f'cyan = "{secondary}"\nwhite = "{foreground_alt}"\n'
 )
 
@@ -91,13 +93,25 @@ if not dunstrc.exists():
         shutil.copyfile(source_dunstrc, dunstrc)
 if dunstrc.exists():
     text = dunstrc.read_text()
-    text, count = re.subn(
+    text, _ = re.subn(
         r'(?m)^(\s*frame_color\s*=\s*)"?#[0-9a-fA-F]{6}"?\s*$',
         lambda match: f'{match.group(1)}"{outline}"',
         text,
         count=1,
     )
-    if count:
-        dunstrc.write_text(text)
+    text = re.sub(
+        r'(?ms)(\[urgency_(?:low|normal|critical)\]\n)(.*?)(?=\n\[|\Z)',
+        lambda match: match.group(1) + re.sub(
+            r'(?m)^(\s*background\s*=\s*).*$',
+            lambda line: f'{line.group(1)}"{surface}"',
+            re.sub(
+                r'(?m)^(\s*foreground\s*=\s*).*$',
+                lambda line: f'{line.group(1)}"{foreground}"',
+                match.group(2),
+            ),
+        ),
+        text,
+    )
+    dunstrc.write_text(text)
 
 print(outline, outline_variant)

@@ -3,7 +3,6 @@ set -euo pipefail
 
 REPO_OWNER="L1mppa"
 REPO_NAME="Synx-Shell"
-REPO_BRANCH="main"
 REPO_SLUG="$REPO_OWNER/$REPO_NAME"
 DATA_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/synx-shell"
 REPO_DIR="$DATA_ROOT/repo"
@@ -38,11 +37,22 @@ if [[ -z "$PROJECT_ROOT" ]]; then
     STAGING="$(mktemp -d "$DATA_ROOT/.repo-stage.XXXXXX")"
     trap 'rm -f -- "${ARCHIVE:-}"; [[ -z "${STAGING:-}" ]] || rm -rf -- "$STAGING"' EXIT
 
-    printf 'Downloading Synx Shell from %s...\n' "$REPO_SLUG"
+    release_tag="${SYNX_SHELL_TAG:-}"
+    if [[ -z "$release_tag" ]]; then
+        printf 'Looking up the latest Synx Shell release...\n'
+        release_json="$(curl --fail --location --silent --show-error "https://api.github.com/repos/$REPO_SLUG/releases/latest" 2>/dev/null || true)"
+        release_tag="$(printf '%s\n' "$release_json" | sed -n 's/^[[:space:]]*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
+    fi
+    if [[ ! "$release_tag" =~ ^[A-Za-z0-9._-]+$ ]]; then
+        echo 'No tagged Synx Shell release is available. Publish a release or set SYNX_SHELL_TAG to an existing release tag.' >&2
+        exit 1
+    fi
+
+    printf 'Downloading Synx Shell %s from %s...\n' "$release_tag" "$REPO_SLUG"
     if ! curl --fail --location --silent --show-error \
-        "https://codeload.github.com/$REPO_SLUG/tar.gz/refs/heads/$REPO_BRANCH" \
+        "https://codeload.github.com/$REPO_SLUG/tar.gz/refs/tags/$release_tag" \
         --output "$ARCHIVE"; then
-        echo 'Download failed. Check your network connection and that the repository is public.' >&2
+        echo 'Download failed. Check the release tag and your network connection.' >&2
         exit 1
     fi
 

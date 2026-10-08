@@ -31,4 +31,11 @@ if [ -r "$settings/keyboard-layout" ]; then
     esac
 fi
 
-exec bspwm
+if command -v dbus-run-session >/dev/null 2>&1; then
+    exec dbus-run-session bspwm
+elif command -v dbus-launch >/dev/null 2>&1; then
+    exec dbus-launch --exit-with-session bspwm
+else
+    printf 'Synx Shell: no D-Bus session launcher found; starting bspwm without a session bus.\n' >&2
+    exec bspwm
+fi
