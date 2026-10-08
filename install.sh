@@ -24,6 +24,9 @@ backup_existing() {
 
 install_tree() {
     local source="$1" target="$2" item
+    if [[ -L "$source" && -d "$source" ]]; then
+        source="$(cd -- "$source" && pwd -P)"
+    fi
     if [[ -d "$source" && ! -L "$source" ]]; then
         mkdir -p "$target"
         while IFS= read -r -d '' item; do
