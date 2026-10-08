@@ -10,7 +10,6 @@ if command -v zscroll >/dev/null 2>&1; then
     --update-check true "bash $script_dir/mpris_control.sh --title" &
   wait
 else
-  printf 'Polybar: zscroll is missing; showing the MPRIS title without scrolling.\n' >&2
   while :; do
     bash "$script_dir/mpris_control.sh" --title 2>/dev/null || true
     sleep 1
