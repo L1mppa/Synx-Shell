@@ -12,11 +12,9 @@ if [[ -z "$interface" ]]; then
     exit 0
 fi
 
-address="$(ip -o -4 addr show dev "$interface" scope global 2>/dev/null | awk 'NR == 1 {sub(/\/.*/, "", $4); print $4}')"
-[[ -n "$address" ]] || address='connected'
 if [[ -d "/sys/class/net/$interface/wireless" ]]; then
     ssid="$(iwgetid -r 2>/dev/null || true)"
-    printf 'WIFI %s %s' "${ssid:-$interface}" "$address"
+    printf 'WIFI %s' "${ssid:-$interface}"
 else
-    printf 'NET %s %s' "$interface" "$address"
+    printf 'NET %s' "$interface"
 fi
