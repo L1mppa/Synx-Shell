@@ -19,5 +19,9 @@ fi
 
 command -v picom >/dev/null 2>&1 && start_once picom picom -b
 command -v dunst >/dev/null 2>&1 && start_once dunst dunst -config "$state_dir/dunstrc"
-command -v polybar >/dev/null 2>&1 && start_once polybar polybar -c "$state_dir/polybar.ini" main
+if command -v polybar >/dev/null 2>&1; then
+    # A previous bspwm session may have left a stale bar process behind.
+    pkill -u "$(id -u)" -x polybar >/dev/null 2>&1 || true
+    polybar -c "$state_dir/polybar.ini" main >>"$state_dir/polybar.log" 2>&1 &
+fi
 command -v greenclip >/dev/null 2>&1 && start_once greenclip greenclip daemon
