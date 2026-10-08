@@ -37,14 +37,9 @@ if [[ -z "$PROJECT_ROOT" ]]; then
     STAGING="$(mktemp -d "$DATA_ROOT/.repo-stage.XXXXXX")"
     trap 'rm -f -- "${ARCHIVE:-}"; [[ -z "${STAGING:-}" ]] || rm -rf -- "$STAGING"' EXIT
 
-    release_tag="${SYNX_SHELL_TAG:-}"
-    if [[ -z "$release_tag" ]]; then
-        printf 'Looking up the latest Synx Shell release...\n'
-        release_json="$(curl --fail --location --silent --show-error "https://api.github.com/repos/$REPO_SLUG/releases/latest" 2>/dev/null || true)"
-        release_tag="$(printf '%s\n' "$release_json" | sed -n 's/^[[:space:]]*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
-    fi
+    release_tag="${SYNX_SHELL_TAG:-v0.1.0}"
     if [[ ! "$release_tag" =~ ^[A-Za-z0-9._-]+$ ]]; then
-        echo 'No tagged Synx Shell release is available. Publish a release or set SYNX_SHELL_TAG to an existing release tag.' >&2
+        echo 'Invalid Synx Shell tag. Set SYNX_SHELL_TAG to a valid release tag.' >&2
         exit 1
     fi
 

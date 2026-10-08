@@ -2,7 +2,7 @@
 set -u
 
 script_path="$(readlink -f -- "${BASH_SOURCE[0]}")"
-player_file="${XDG_CONFIG_HOME:-$HOME/.config}/polybar/.curplayer.log"
+player_file="${XDG_STATE_HOME:-$HOME/.local/state}/synx-shell/.curplayer.log"
 mkdir -p "$(dirname -- "$player_file")"
 
 list_players() {
@@ -57,10 +57,8 @@ case "${1:-}" in
         printf '%%{A1:bash %s --previous:}%%{A} %%{A1:bash %s --playpause:}󰐎%%{A} %%{A1:bash %s --next:}%%{A}\n' "$script_path" "$script_path" "$script_path"
         ;;
     --title)
-        if [[ -z "$current_player" ]]; then
-            printf 'PLAYER NOT FOUND\n'
-        else
-            playerctl --player="$current_player" metadata --format '{{ title }} - {{ artist }}' 2>/dev/null || printf 'NO MUSIC IS PLAYING\n'
+        if [[ -n "$current_player" ]]; then
+            playerctl --player="$current_player" metadata --format '{{ title }} - {{ artist }}' 2>/dev/null || true
         fi
         ;;
     --process)

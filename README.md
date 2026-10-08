@@ -38,7 +38,7 @@ desktop snapshot, btop reports 1.14 GiB used and 6.31 GiB available.
 Install Synx Shell directly from its public GitHub repository:
 
 ```sh
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/L1mppa/Synx-Shell/main/install/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/L1mppa/Synx-Shell/v0.1.0/install/install.sh)"
 ```
 
 The installer downloads the public source archive without requiring a GitHub
@@ -98,7 +98,9 @@ bundled neutral palette is used.
 
 Explore the wallpaper collection and its source pages in
 [wallpapers/CREDITS.md](wallpapers/CREDITS.md).
-Each wallpaper retains its creator's own license and usage terms. Wallhaven\ndoes not grant a shared license for the images.\n
+Each wallpaper retains its creator's own license and usage terms. Wallhaven
+does not grant a shared license for the images.
+
 ## Credits and license
 
 The wallpaper picker's concept and selector UI were inspired by
@@ -180,4 +182,7 @@ The X11 Bemoji shortcut sets `BEMOJI_PICKER_CMD=rofi`,
 `BEMOJI_CLIP_CMD=xclip`, and `BEMOJI_TYPE_CMD=xdotool`. This matches bemoji's
 documented X11 tools; install `xclip` for clipboard copying and `xdotool` for
 typing. Some optional shortcuts also use Flameshot, Greenclip,
-`rofi-power-menu`, and `dmenu-bluetooth`.
+`rofi-power-menu`, and `dmenu-bluetooth`. NetworkManager is an optional
+network manager and may conflict with iwd or systemd-networkd. BlueZ is needed
+for the optional Bluetooth shortcut; the installer does not enable
+`bluetooth.service`.
