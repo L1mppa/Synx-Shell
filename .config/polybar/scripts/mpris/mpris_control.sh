@@ -58,7 +58,15 @@ case "${1:-}" in
         ;;
     --title)
         if [[ -n "$current_player" ]]; then
-            playerctl --player="$current_player" metadata --format '{{ title }} - {{ artist }}' 2>/dev/null || true
+            title="$(playerctl --player="$current_player" metadata title 2>/dev/null || true)"
+            artist="$(playerctl --player="$current_player" metadata artist 2>/dev/null || true)"
+            if [[ -n "$title" ]]; then
+                if [[ -n "$artist" ]]; then
+                    printf '%s - %s\n' "$title" "$artist"
+                else
+                    printf '%s\n' "$title"
+                fi
+            fi
         fi
         ;;
     --process)

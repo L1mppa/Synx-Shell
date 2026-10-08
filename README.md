@@ -38,13 +38,14 @@ desktop snapshot, btop reports 1.14 GiB used and 6.31 GiB available.
 Install Synx Shell directly from its public GitHub repository:
 
 ```sh
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/L1mppa/Synx-Shell/v0.1.0/install/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/L1mppa/Synx-Shell/v0.1.1/install/install.sh)"
 ```
 
 The installer downloads the public source archive without requiring a GitHub
 token. It stages downloads before replacing the stable checkout, then presents
 settings, dependencies, wallpaper copy, and deployment steps. Re-running it
-updates the checkout in place; deployed links continue to use the same path.
+installs the same pinned release again. To install another tagged release, set
+`SYNX_SHELL_TAG` before running the bootstrap script.
 Existing user configuration is backed up under
 `~/.local/state/synx-shell/backups/` when it is first replaced.
 
@@ -54,8 +55,8 @@ that build fails. The Arch package step runs a full `pacman -Syu` transaction,
 so it may upgrade existing system packages; review and confirm pacman's
 transaction.
 It installs an X server, `xinit`, Iosevka Nerd Font Mono, and Terminess Nerd
-Font Mono. Pacman builds that expose `--ask` receive `--ask=4` for package
-conflict prompts. On Debian/Ubuntu and Fedora, packages install one at a time
+Font Mono. Pacman presents its normal transaction confirmation before
+installing packages. On Debian/Ubuntu and Fedora, packages install one at a time
 so an unavailable package (such as Alacritty on an older release) is reported
 and does not stop the rest. Nerd Font variants may need manual installation on
 non-Arch systems, so some Polybar glyphs may be missing.
@@ -108,7 +109,7 @@ The wallpaper picker's concept and selector UI were inspired by
 its own X11/bspwm implementation: feh applies wallpapers, ueberzugpp provides
 sharp previews with chafa as a fallback, and Matugen updates the shell's
 runtime color files and bspwm borders. The upstream project uses a separate
-Wayland/swaybg implementation; Synx Shell does not include its source code.
+Wayland/swaybg implementation; Synx Shell's implementation is inspired by and partly modeled on its concept and selector UI.
 See [NOTICE](NOTICE) for the upstream MIT license text and attribution.
 
 Synx Shell is available under the [MIT License](LICENSE).

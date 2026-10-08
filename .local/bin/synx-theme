@@ -46,39 +46,72 @@ foreground_alt = color("on_surface", foreground)
 alert = color("error", "#999999")
 
 
-def distinct_color(candidates, blocked, fallback):
-    blocked = {value.lower() for value in blocked}
-    return next((value for value in candidates if value.lower() not in blocked), fallback)
-
-
-def unique_palette(candidates, blocked, fallbacks):
+def unique_palette(slots, blocked):
     used = {value.lower() for value in blocked}
     result = []
-    fallback_iter = iter(fallbacks)
-    for candidate in candidates:
+    for candidate, fallback, backup in slots:
         value = candidate
         if value.lower() in used:
-            value = next((fallback for fallback in fallback_iter if fallback.lower() not in used), None)
-        if value is None:
+            value = fallback
+        if value.lower() in used:
+            value = backup
+        if value.lower() in used:
             raise ValueError("Could not build a distinct ANSI palette")
         result.append(value)
         used.add(value.lower())
     return result
 
 
-ansi_normal = unique_palette(
-    [surface, alert, secondary, primary, outline_variant, "#d33682", "#2aa198", foreground_alt],
-    [],
-    ["#cc241d", "#98971a", "#d79921", "#458588", "#b16286", "#689d6a", "#d65d0e", "#a89984"],
-)
-ansi_bright_candidates = [
-    "#" + "".join(f"{round(int(value[i:i + 2], 16) * 0.68 + 255 * 0.32):02x}" for i in (1, 3, 5))
-    for value in ansi_normal
+def luminance(value):
+    channels = [int(value[index:index + 2], 16) / 255 for index in (1, 3, 5)]
+    linear = [channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4 for channel in channels]
+    return sum(channel * weight for channel, weight in zip(linear, (0.2126, 0.7152, 0.0722)))
+
+
+def contrast_ratio(first, second):
+    light, dark = sorted((luminance(first), luminance(second)), reverse=True)
+    return (light + 0.05) / (dark + 0.05)
+
+
+def readable_color(candidate, background):
+    rgb = [int(candidate[index:index + 2], 16) for index in (1, 3, 5)]
+    for step in range(1, 13):
+        amount = step / 12
+        color_value = "#" + "".join(f"{round(channel + (255 - channel) * amount):02x}" for channel in rgb)
+        if contrast_ratio(color_value, background) >= 4.5:
+            return color_value
+    return "#83a598"
+
+
+normal_slots = [
+    (readable_color(surface_variant, surface), "#767676", "#8a8a8a"),
+    (alert, "#cc241d", "#d65d0e"),
+    (secondary, "#98971a", "#689d6a"),
+    (primary, "#d79921", "#fabd2f"),
+    (readable_color(outline_variant, surface), "#83a598", "#8ecfff"),
+    ("#d33682", "#b16286", "#e176aa"),
+    ("#2aa198", "#8be9fd", "#56b6c2"),
+    (foreground_alt, "#e2e2e9", "#ebdbb2"),
+]
+ansi_normal = unique_palette(normal_slots, {surface})
+
+def brighten(value):
+    return "#" + "".join(f"{round(int(value[index:index + 2], 16) * 0.68 + 255 * 0.32):02x}" for index in (1, 3, 5))
+
+
+bright_fallbacks = [
+    ("#5d5f62", "#808287"),
+    ("#fb4934", "#e06c75"),
+    ("#b8bb26", "#a3be8c"),
+    ("#fabd2f", "#e5c07b"),
+    ("#8ecfff", "#61afef"),
+    ("#d3869b", "#c678dd"),
+    ("#8be9fd", "#56b6c2"),
+    ("#ebdbb2", "#d9c89e"),
 ]
 ansi_bright = unique_palette(
-    ansi_bright_candidates,
-    ansi_normal,
-    ["#fb4934", "#b8bb26", "#fabd2f", "#83a598", "#d3869b", "#8ec07c", "#fe8019", "#ebdbb2"],
+    [(brighten(value), *bright_fallbacks[index]) for index, value in enumerate(ansi_normal)],
+    {surface, *ansi_normal},
 )
 
 
