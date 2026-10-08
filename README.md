@@ -11,13 +11,16 @@ checkout at `~/.local/share/synx-shell/repo` for updates and deployment.
 
 ### Wallpaper picker
 
-![Synx Shell wallpaper picker with an image preview](screenshots/wallpaper-picker.png)
+![Synx Shell wallpaper picker with an image preview](<img width="1919" height="1079" alt="2026-10-08_17-17" src="https://github.com/user-attachments/assets/c3aab291-6c26-4092-a4a6-e586d1cf8eed" />
+)
 
 ### Desktop
 
-![Synx Shell desktop with the selected wallpaper](screenshots/desktop.png)
+![Synx Shell desktop with the selected wallpaper](<img width="1919" height="1079" alt="2026-10-08_17-17_1" src="https://github.com/user-attachments/assets/a5991f5b-51f1-4d4f-8eb8-6f9e27605a02" />
+)
 
-![Synx Shell desktop with Alacritty and btop open](screenshots/desktop-apps.png)
+![Synx Shell desktop with Alacritty and btop open](<img width="1919" height="1079" alt="2026-10-08_17-16" src="https://github.com/user-attachments/assets/2a88e13a-c84a-4745-9baa-635b64518d65" />
+)
 
 ## Install
 
