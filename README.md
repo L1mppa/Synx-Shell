@@ -7,6 +7,18 @@ clipboard tools, and wallpaper-based color themes in one installable setup.
 The installer configures the shell and keeps its managed files in a stable
 checkout at `~/.local/share/synx-shell/repo` for updates and deployment.
 
+## Screenshots
+
+### Wallpaper picker
+
+![Synx Shell wallpaper picker with an image preview](screenshots/wallpaper-picker.png)
+
+### Desktop
+
+![Synx Shell desktop with the selected wallpaper](screenshots/desktop.png)
+
+![Synx Shell desktop with Alacritty and btop open](screenshots/desktop-apps.png)
+
 ## Install
 
 Install Synx Shell directly from its public GitHub repository:
