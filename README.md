@@ -98,7 +98,7 @@ bundled neutral palette is used.
 
 Explore the wallpaper collection and its source pages in
 [wallpapers/CREDITS.md](wallpapers/CREDITS.md).
-
+Each wallpaper retains its creator's own license and usage terms. Wallhaven\ndoes not grant a shared license for the images.\n
 ## Credits and license
 
 The wallpaper picker's concept and selector UI were inspired by
