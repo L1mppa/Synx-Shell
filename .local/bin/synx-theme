@@ -44,8 +44,23 @@ active = color("secondary_container", surface_variant)
 foreground = color("on_background", "#b9b9b9")
 foreground_alt = color("on_surface", foreground)
 alert = color("error", "#999999")
-ansi_magenta = alert if alert.lower() != primary.lower() else surface_variant
-ansi_cyan = outline if outline.lower() != secondary.lower() else foreground_alt
+
+
+def distinct_color(candidates, blocked, fallback):
+    blocked = {value.lower() for value in blocked}
+    return next((value for value in candidates if value.lower() not in blocked), fallback)
+
+
+ansi_magenta = distinct_color(
+    (surface_variant, foreground_alt, outline, secondary),
+    {primary, alert},
+    "#d33682",
+)
+ansi_cyan = distinct_color(
+    (outline, foreground_alt, surface_variant, primary),
+    {secondary, outline_variant},
+    "#2aa198",
+)
 
 (state / "polybar-colors.ini").write_text(
     "[colors]\n"
@@ -83,7 +98,7 @@ ansi_cyan = outline if outline.lower() != secondary.lower() else foreground_alt
     "[colors.bright]\n"
     f'black = "{outline_variant}"\nred = "{alert}"\ngreen = "{secondary}"\n'
     f'yellow = "{primary}"\nblue = "{outline}"\nmagenta = "{ansi_magenta}"\n'
-    f'cyan = "{secondary}"\nwhite = "{foreground_alt}"\n'
+    f'cyan = "{ansi_cyan}"\nwhite = "{foreground_alt}"\n'
 )
 
 dunstrc = state / "dunstrc"
@@ -115,3 +130,4 @@ if dunstrc.exists():
     dunstrc.write_text(text)
 
 print(outline, outline_variant)
+
