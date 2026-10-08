@@ -48,15 +48,18 @@ pick_wallpaper() {
             && [[ -s "$pid_file" ]]; then
             pid="$(<"$pid_file")"
             socket="$runtime_dir/ueberzugpp-$pid.socket"
-            WALLFINDER_UEBERZUG_SOCKET="$socket" fzf \
+            if WALLFINDER_UEBERZUG_SOCKET="$socket" fzf \
                 --read0 --print0 \
                 --prompt="select wallpaper > " \
                 --layout=reverse --border \
                 --color="border:$outline,prompt:$primary,pointer:$primary,marker:$primary,info:$disabled,hl:$primary,hl+:$primary" \
                 --preview='ueberzugpp cmd -s "$WALLFINDER_UEBERZUG_SOCKET" -i wallfinder -a add -x "$FZF_PREVIEW_LEFT" -y "$FZF_PREVIEW_TOP" --max-width "$FZF_PREVIEW_COLUMNS" --max-height "$FZF_PREVIEW_LINES" -f {}' \
                 --preview-window=right:65%:wrap \
-                --header="enter to apply | esc/ctrl-c to exit" < <(find_wallpapers)
-            result=$?
+                --header="enter to apply | esc/ctrl-c to exit" < <(find_wallpapers); then
+                result=0
+            else
+                result=$?
+            fi
             ueberzugpp cmd -s "$socket" -a exit >/dev/null 2>&1 || true
             rm -f -- "$pid_file"
             return "$result"
