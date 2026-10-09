@@ -38,7 +38,7 @@ desktop snapshot, btop reports 1.14 GiB used and 6.31 GiB available.
 Install Synx Shell directly from its public GitHub repository:
 
 ```sh
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/L1mppa/Synx-Shell/v0.1.1/install/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/L1mppa/Synx-Shell/v0.1.3/install/install.sh)"
 ```
 
 The installer downloads the public source archive without requiring a GitHub
@@ -54,14 +54,14 @@ builds `yay` if neither helper is installed and stops with a clear message if
 that build fails. The Arch package step runs a full `pacman -Syu` transaction,
 so it may upgrade existing system packages; review and confirm pacman's
 transaction.
-It installs an X server, `xinit`, Iosevka Nerd Font Mono, and Terminess Nerd
-Font Mono. Pacman presents its normal transaction confirmation before
+It installs an X server, `xinit`, Iosevka Nerd Font Mono, Terminess Nerd
+Font Mono, and Noto CJK fonts for Polybar title fallback. Pacman presents its normal transaction confirmation before
 installing packages. On Debian/Ubuntu and Fedora, packages install one at a time
 so an unavailable package (such as Alacritty on an older release) is reported
 and does not stop the rest. Nerd Font variants may need manual installation on
 non-Arch systems, so some Polybar glyphs may be missing.
-Polybar uses fontconfig fallback when a named Nerd Font is unavailable, so the
-bar can still render; icons absent from the fallback font may be missing.
+Polybar uses fontconfig fallback when a named Nerd Font is unavailable. The
+installed Noto CJK font provides fallback glyphs for CJK media titles.
 Deployment includes an `~/.xinitrc` that starts bspwm, so after installing the
 X server and xinit you can launch from a TTY with `startx`. The deployed
 `.xinitrc` is executable and starts bspwm directly.

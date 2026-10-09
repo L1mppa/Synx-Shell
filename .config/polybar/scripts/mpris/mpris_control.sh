@@ -83,6 +83,7 @@ case "${1:-}" in
         playerctl --player="$current_player" "$action" 2>/dev/null || true
         ;;
     --vc)
+        [[ -n "${2:-}" ]] || exit 0
         [[ -n "$current_player" ]] || exit 0
         playerctl --player="$current_player" volume "${2:-0}" 2>/dev/null || true
         ;;

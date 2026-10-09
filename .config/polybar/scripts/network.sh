@@ -13,7 +13,7 @@ if [[ -z "$interface" ]]; then
 fi
 
 if [[ -d "/sys/class/net/$interface/wireless" ]]; then
-    ssid="$(iw dev "$interface" link 2>/dev/null | awk -F': ' '/^[[:space:]]*SSID:/{print $2; exit}')"
+    ssid="$(iw dev "$interface" link 2>/dev/null | sed -n 's/^[[:space:]]*SSID: //p')"
     printf 'WIFI %s' "${ssid:-$interface}"
 else
     printf 'NET %s' "$interface"

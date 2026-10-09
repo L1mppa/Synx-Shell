@@ -19,21 +19,25 @@ if [[ ! -s "$state_dir/dunstrc" ]]; then
     cp -- "$root_dir/.config/dunst/dunstrc" "$state_dir/dunstrc"
 fi
 
-# Dunst uses pixel offsets while Polybar's height may be specified in points.
-# Keep the notification stack below the bar with an 8px gap.
-bar_height="$(awk -F= '/^[[:space:]]*height[[:space:]]*=/ {gsub(/[[:space:]]/, "", $2); print $2; exit}' \
-    "$root_dir/.config/polybar/config.ini")"
-dpi=96
-if command -v xrdb >/dev/null 2>&1; then
-    detected_dpi="$(xrdb -query 2>/dev/null | awk '$1 == "Xft.dpi:" {print $2; exit}')"
-    [[ "$detected_dpi" =~ ^[0-9]+$ ]] && dpi="$detected_dpi"
+# Position Dunst below the actual Polybar window, including its screen offset and borders.
+bar_bottom=0
+if command -v xdotool >/dev/null 2>&1; then
+    while IFS= read -r window_id; do
+        geometry="$(xdotool getwindowgeometry --shell "$window_id" 2>/dev/null)" || continue
+        window_y="$(printf '%s\n' "$geometry" | awk -F= '$1 == "Y" {print $2}')"
+        window_height="$(printf '%s\n' "$geometry" | awk -F= '$1 == "HEIGHT" {print $2}')"
+        if [[ "$window_y" =~ ^-?[0-9]+$ && "$window_height" =~ ^[0-9]+$ ]]; then
+            window_bottom=$((window_y + window_height))
+            ((window_bottom > bar_bottom)) && bar_bottom="$window_bottom"
+        fi
+    done < <(xdotool search --class polybar 2>/dev/null || true)
 fi
-case "$bar_height" in
-    *pt) bar_pixels=$(( (${bar_height%pt} * dpi + 71) / 72 )) ;;
-    *px) bar_pixels="${bar_height%px}" ;;
-    *) bar_pixels=30 ;;
-esac
-dunst_offset=$((bar_pixels + 8))
+if ((bar_bottom > 0)); then
+    dunst_offset=$((bar_bottom + 8))
+else
+    # Startup fallback, replaced by measured geometry once Polybar is mapped.
+    dunst_offset=48
+fi
 dunst_temporary="$(mktemp "$state_dir/.dunstrc.XXXXXX")"
 awk -v offset="$dunst_offset" '
     /^[[:space:]]*offset[[:space:]]*=/ { print "    offset = (0, " offset ")"; next }

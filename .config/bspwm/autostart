@@ -18,10 +18,22 @@ if command -v feh >/dev/null 2>&1 && [ -r "$wallpaper_file" ]; then
 fi
 
 command -v picom >/dev/null 2>&1 && start_once picom picom -b
-command -v dunst >/dev/null 2>&1 && start_once dunst dunst -config "$state_dir/dunstrc"
 if command -v polybar >/dev/null 2>&1; then
     # A previous bspwm session may have left a stale bar process behind.
     pkill -u "$(id -u)" -x polybar >/dev/null 2>&1 || true
-    polybar -c "$state_dir/polybar.ini" main >>"$state_dir/polybar.log" 2>&1 &
+    polybar -c "$state_dir/polybar.ini" main >"$state_dir/polybar.log" 2>&1 &
+    if command -v xdotool >/dev/null 2>&1; then
+        wait_count=0
+        while [ "$wait_count" -lt 30 ]; do
+            xdotool search --class polybar >/dev/null 2>&1 && break
+            wait_count=$((wait_count + 1))
+            sleep 0.1
+        done
+    fi
+fi
+bash "$HOME/.local/bin/synx-shell-runtime" >/dev/null 2>&1 || true
+if command -v dunst >/dev/null 2>&1; then
+    pkill -u "$(id -u)" -x dunst >/dev/null 2>&1 || true
+    dunst -config "$state_dir/dunstrc" &
 fi
 command -v greenclip >/dev/null 2>&1 && start_once greenclip greenclip daemon

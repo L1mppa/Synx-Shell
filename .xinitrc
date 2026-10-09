@@ -31,6 +31,16 @@ if [ -r "$settings/keyboard-layout" ]; then
     esac
 fi
 
+if [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+    exec bspwm
+fi
+
+if [ -n "${XDG_RUNTIME_DIR:-}" ] && [ -S "$XDG_RUNTIME_DIR/bus" ]; then
+    DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+    export DBUS_SESSION_BUS_ADDRESS
+    exec bspwm
+fi
+
 if command -v dbus-run-session >/dev/null 2>&1; then
     exec dbus-run-session bspwm
 elif command -v dbus-launch >/dev/null 2>&1; then

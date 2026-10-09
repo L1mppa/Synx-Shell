@@ -46,73 +46,28 @@ foreground_alt = color("on_surface", foreground)
 alert = color("error", "#999999")
 
 
-def unique_palette(slots, blocked):
-    used = {value.lower() for value in blocked}
-    result = []
-    for candidate, fallback, backup in slots:
-        value = candidate
-        if value.lower() in used:
-            value = fallback
-        if value.lower() in used:
-            value = backup
-        if value.lower() in used:
-            raise ValueError("Could not build a distinct ANSI palette")
-        result.append(value)
-        used.add(value.lower())
-    return result
-
-
-def luminance(value):
-    channels = [int(value[index:index + 2], 16) / 255 for index in (1, 3, 5)]
-    linear = [channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4 for channel in channels]
-    return sum(channel * weight for channel, weight in zip(linear, (0.2126, 0.7152, 0.0722)))
-
-
-def contrast_ratio(first, second):
-    light, dark = sorted((luminance(first), luminance(second)), reverse=True)
-    return (light + 0.05) / (dark + 0.05)
-
-
-def readable_color(candidate, background):
-    rgb = [int(candidate[index:index + 2], 16) for index in (1, 3, 5)]
-    for step in range(1, 13):
-        amount = step / 12
-        color_value = "#" + "".join(f"{round(channel + (255 - channel) * amount):02x}" for channel in rgb)
-        if contrast_ratio(color_value, background) >= 4.5:
-            return color_value
-    return "#83a598"
-
-
-normal_slots = [
-    (readable_color(surface_variant, surface), "#767676", "#8a8a8a"),
-    (alert, "#cc241d", "#d65d0e"),
-    (secondary, "#98971a", "#689d6a"),
-    (primary, "#d79921", "#fabd2f"),
-    (readable_color(outline_variant, surface), "#83a598", "#8ecfff"),
-    ("#d33682", "#b16286", "#e176aa"),
-    ("#2aa198", "#8be9fd", "#56b6c2"),
-    (foreground_alt, "#e2e2e9", "#ebdbb2"),
+# Keep ANSI colors semantically stable across wallpapers so terminal diffs and
+# colored text retain their usual red/green/yellow meanings.
+ansi_normal = [
+    "#2e3436",  # black
+    "#cc0000",  # red
+    "#4e9a06",  # green
+    "#c4a000",  # yellow
+    "#3465a4",  # blue
+    "#75507b",  # magenta
+    "#06989a",  # cyan
+    "#d3d7cf",  # white
 ]
-ansi_normal = unique_palette(normal_slots, {surface})
-
-def brighten(value):
-    return "#" + "".join(f"{round(int(value[index:index + 2], 16) * 0.68 + 255 * 0.32):02x}" for index in (1, 3, 5))
-
-
-bright_fallbacks = [
-    ("#5d5f62", "#808287"),
-    ("#fb4934", "#e06c75"),
-    ("#b8bb26", "#a3be8c"),
-    ("#fabd2f", "#e5c07b"),
-    ("#8ecfff", "#61afef"),
-    ("#d3869b", "#c678dd"),
-    ("#8be9fd", "#56b6c2"),
-    ("#ebdbb2", "#d9c89e"),
+ansi_bright = [
+    "#555753",
+    "#ef2929",
+    "#8ae234",
+    "#fce94f",
+    "#729fcf",
+    "#ad7fa8",
+    "#34e2e2",
+    "#eeeeec",
 ]
-ansi_bright = unique_palette(
-    [(brighten(value), *bright_fallbacks[index]) for index, value in enumerate(ansi_normal)],
-    {surface, *ansi_normal},
-)
 
 
 (state / "polybar-colors.ini").write_text(
