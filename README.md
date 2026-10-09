@@ -55,8 +55,7 @@ that build fails. The Arch package step runs a full `pacman -Syu` transaction,
 so it may upgrade existing system packages; review and confirm pacman's
 transaction.
 It installs an X server, `xinit`, Iosevka Nerd Font Mono, Terminess Nerd
-Font Mono, and Noto CJK fonts for Polybar title fallback. Pacman presents its normal transaction confirmation before
-installing packages. On Debian/Ubuntu and Fedora, packages install one at a time
+Font Mono. Noto CJK fonts are offered separately as an optional package because they are large. Pacman presents its normal transaction confirmation before installing packages. On Debian/Ubuntu and Fedora, packages install one at a time
 so an unavailable package (such as Alacritty on an older release) is reported
 and does not stop the rest. Nerd Font variants may need manual installation on
 non-Arch systems, so some Polybar glyphs may be missing.

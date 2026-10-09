@@ -59,7 +59,7 @@ ansi_normal = [
     "#d3d7cf",  # white
 ]
 ansi_bright = [
-    "#555753",
+    "#6e726d",
     "#ef2929",
     "#8ae234",
     "#fce94f",

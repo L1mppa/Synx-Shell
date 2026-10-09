@@ -89,7 +89,8 @@ install_packages() {
 
 case "$manager" in
     pacman)
-        repo_packages=(bash git base-devel bspwm sxhkd alacritty feh picom dunst polybar rofi fastfetch fzf chafa ueberzugpp libnotify playerctl pamixer flameshot matugen python iproute2 xorg-server xorg-xinit xorg-setxkbmap xclip xdotool ttf-iosevka-nerd ttf-terminus-nerd noto-fonts-cjk iw bluez bluez-utils pipewire-pulse papirus-icon-theme noto-fonts dbus)
+        cjk_package=noto-fonts-cjk
+        repo_packages=(bash git base-devel bspwm sxhkd alacritty feh picom dunst polybar rofi fastfetch fzf chafa ueberzugpp libnotify playerctl pamixer flameshot matugen python iproute2 xorg-server xorg-xinit xorg-setxkbmap xclip xdotool ttf-iosevka-nerd ttf-terminus-nerd iw bluez bluez-utils pipewire-pulse papirus-icon-theme noto-fonts dbus)
         aur_packages=(zscroll greenclip bemoji rofi-power-menu dmenu-bluetooth)
 
         helper=''
@@ -121,27 +122,44 @@ case "$manager" in
         "$helper" -S --needed "${aur_packages[@]}"
         ;;
     apt)
+        cjk_package=fonts-noto-cjk
         as_root apt-get update
-        install_packages bash git build-essential iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-bin playerctl pamixer flameshot python3 xorg xinit x11-xkb-utils xclip xdotool fonts-iosevka fonts-terminus fonts-noto-cjk iw bluez bluez-tools pipewire-pulse papirus-icon-theme fonts-noto-core dbus-x11
+        install_packages bash git build-essential iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-bin playerctl pamixer flameshot python3 xorg xinit x11-xkb-utils xclip xdotool fonts-iosevka fonts-terminus iw bluez bluez-tools pipewire-pulse papirus-icon-theme fonts-noto-core dbus-x11
         echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu, and dmenu-bluetooth may need manual installation on Debian/Ubuntu.'
         ;;
     dnf)
-        install_packages bash git make gcc iproute bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-x11-server-Xorg xorg-x11-xinit xorg-x11-xkb-utils xclip xdotool iosevka-fonts terminus-fonts google-noto-sans-cjk-fonts iw bluez bluez-tools pipewire-pulseaudio papirus-icon-theme google-noto-sans-mono-fonts dbus-x11
+        cjk_package=google-noto-sans-cjk-fonts
+        install_packages bash git make gcc iproute bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-x11-server-Xorg xorg-x11-xinit xorg-x11-xkb-utils xclip xdotool iosevka-fonts terminus-fonts iw bluez bluez-tools pipewire-pulseaudio papirus-icon-theme google-noto-sans-mono-fonts dbus-x11
         echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu, and dmenu-bluetooth may need manual installation on Fedora.'
         ;;
     zypper)
+        cjk_package=google-noto-sans-cjk-fonts
         install_packages bash git make gcc iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-tools playerctl pamixer flameshot python3 xorg-x11-server xinit setxkbmap xclip xdotool iosevka-fonts terminus-fonts google-noto-sans-cjk-fonts iw bluez bluez-tools pipewire-pulseaudio papirus-icon-theme google-noto-sans-mono-fonts dbus-1-x11
         echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu, and dmenu-bluetooth may need manual installation on openSUSE.'
         ;;
     xbps)
+        cjk_package=noto-fonts-cjk
         as_root xbps-install -S
         install_packages bash git base-devel iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit setxkbmap xclip xdotool noto-fonts-cjk iw bluez bluez-utils pipewire-pulse papirus-icon-theme noto-fonts-ttf dbus-x11
         echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu, and dmenu-bluetooth may need manual installation on Void.'
         ;;
     apk)
-        install_packages bash git build-base iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit setxkbmap xclip xdotool font-noto-cjk iw bluez bluez-openrc pipewire-pulse papirus-icon-theme font-noto dbus-x11
+        cjk_package=font-noto-cjk
+        install_packages bash git build-base iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit setxkbmap xclip xdotool iw bluez bluez-openrc pipewire-pulse papirus-icon-theme font-noto dbus-x11
         echo 'Some desktop packages may not be available for your Alpine release; review the warnings above.'
         echo 'Nerd Font variants may need manual installation on Alpine; Polybar glyphs may be missing.'
+        ;;
+esac
+
+printf '\nNoto CJK fonts are optional and provide fallback glyphs for CJK media titles.\n'
+read -r -p 'Install optional CJK fonts? [y/N] ' answer || answer=''
+case "$answer" in
+    y|Y|yes|YES)
+        if [[ "$manager" == pacman ]]; then
+            as_root pacman -S --needed "$cjk_package"
+        else
+            install_packages "$cjk_package"
+        fi
         ;;
 esac
 
