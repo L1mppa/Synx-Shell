@@ -62,8 +62,7 @@ Font Mono. Noto CJK fonts are offered separately as an optional package because 
 so an unavailable package (such as Alacritty on an older release) is reported
 and does not stop the rest. Nerd Font variants may need manual installation on
 non-Arch systems, so some Polybar glyphs may be missing.
-Polybar uses fontconfig fallback when a named Nerd Font is unavailable. The
-optional Noto CJK font provides fallback glyphs for CJK media titles when installed.
+Polybar uses fontconfig fallback when a named Nerd Font is unavailable. If installed, the optional Noto CJK font provides fallback glyphs for CJK media titles; otherwise those glyphs may be missing.
 Deployment includes an `~/.xinitrc` that starts bspwm, so after installing the
 X server and xinit you can launch from a TTY with `startx`. The deployed
 `.xinitrc` is executable and starts bspwm directly.
