@@ -168,7 +168,6 @@ select_setting() {
 get_timezones() {
     if command -v timedatectl >/dev/null 2>&1; then
         timedatectl list-timezones 2>/dev/null || printf 'UTC\n'
-        printf 'Europe/Helsinki\nUTC\n'
         return 0
     fi
     if [[ -d /usr/share/zoneinfo ]]; then
@@ -179,7 +178,7 @@ get_timezones() {
             ! -name tzdata.zi ! -name leapseconds ! -name leap-seconds.list \
             ! -name localtime ! -name posixrules -printf '%P\n'
     fi
-    printf 'Europe/Helsinki\nUTC\n'
+    printf 'UTC\n'
 }
 
 get_locales() {
@@ -192,7 +191,7 @@ get_locales() {
     if [[ -r /usr/share/i18n/SUPPORTED ]]; then
         awk '$2 == "UTF-8" {print $1}' /usr/share/i18n/SUPPORTED
     fi
-    printf 'C\nC.UTF-8\nPOSIX\nfi_FI.UTF-8\nsv_FI.UTF-8\n'
+    printf 'C\nC.UTF-8\nPOSIX\n'
 }
 
 get_keyboard_layouts() {
@@ -203,7 +202,7 @@ get_keyboard_layouts() {
         awk '/^! layout/{in_layouts=1; next} /^!/{if (in_layouts) exit} in_layouts && NF {print $1}' \
             /usr/share/X11/xkb/rules/base.lst
     fi
-    printf 'fi\nse\n'
+    printf 'us\n'
 }
 
 locale_is_generated() {
