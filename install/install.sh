@@ -100,6 +100,12 @@ if [[ "$PROJECT_ROOT" != "$REPO_DIR" ]]; then
     PROJECT_ROOT="$REPO_DIR"
 fi
 
+# bspwm refuses to start when its startup script is not executable. Some
+# archive-based install paths do not preserve Git executable bits.
+if [[ -f "$PROJECT_ROOT/.config/bspwm/bspwmrc" ]]; then
+    chmod +x "$PROJECT_ROOT/.config/bspwm/bspwmrc"
+fi
+
 show_banner
 
 as_root() {
