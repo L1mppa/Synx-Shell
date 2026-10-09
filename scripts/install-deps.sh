@@ -134,13 +134,13 @@ case "$manager" in
         ;;
     zypper)
         cjk_package=google-noto-sans-cjk-fonts
-        install_packages bash git make gcc iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-tools playerctl pamixer flameshot python3 xorg-x11-server xinit setxkbmap xclip xdotool iosevka-fonts terminus-fonts google-noto-sans-cjk-fonts iw bluez bluez-tools pipewire-pulseaudio papirus-icon-theme google-noto-sans-mono-fonts dbus-1-x11
+        install_packages bash git make gcc iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-tools playerctl pamixer flameshot python3 xorg-x11-server xinit setxkbmap xclip xdotool iosevka-fonts terminus-fonts iw bluez bluez-tools pipewire-pulseaudio papirus-icon-theme google-noto-sans-mono-fonts dbus-1-x11
         echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu, and dmenu-bluetooth may need manual installation on openSUSE.'
         ;;
     xbps)
         cjk_package=noto-fonts-cjk
         as_root xbps-install -S
-        install_packages bash git base-devel iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit setxkbmap xclip xdotool noto-fonts-cjk iw bluez bluez-utils pipewire-pulse papirus-icon-theme noto-fonts-ttf dbus-x11
+        install_packages bash git base-devel iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit setxkbmap xclip xdotool iw bluez bluez-utils pipewire-pulse papirus-icon-theme noto-fonts-ttf dbus-x11
         echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu, and dmenu-bluetooth may need manual installation on Void.'
         ;;
     apk)
