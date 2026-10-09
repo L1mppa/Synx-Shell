@@ -38,7 +38,7 @@ desktop snapshot, btop reports 1.14 GiB used and 6.31 GiB available.
 Install Synx Shell directly from its public GitHub repository:
 
 ```sh
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/L1mppa/Synx-Shell/v0.1.4/install/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/L1mppa/Synx-Shell/v0.1.5/install/install.sh)"
 ```
 
 The installer downloads the public source archive without requiring a GitHub

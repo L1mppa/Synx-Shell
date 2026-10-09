@@ -37,7 +37,7 @@ if [[ -z "$PROJECT_ROOT" ]]; then
     STAGING="$(mktemp -d "$DATA_ROOT/.repo-stage.XXXXXX")"
     trap 'rm -f -- "${ARCHIVE:-}"; [[ -z "${STAGING:-}" ]] || rm -rf -- "$STAGING"' EXIT
 
-    release_tag="${SYNX_SHELL_TAG:-v0.1.4}"
+    release_tag="${SYNX_SHELL_TAG:-v0.1.5}"
     if [[ ! "$release_tag" =~ ^[A-Za-z0-9._-]+$ ]]; then
         echo 'Invalid Synx Shell tag. Set SYNX_SHELL_TAG to a valid release tag.' >&2
         exit 1
