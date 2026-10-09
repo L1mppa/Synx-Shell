@@ -43,7 +43,7 @@ theme_color() {
 }
 
 find_wallpapers() {
-    find "$wall_dir" -type f \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.jpeg' -o -iname '*.webp' \) -print0 | sort -z
+    find "$wall_dir" \( -type f -o -type l \) \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.jpeg' -o -iname '*.webp' \) -print0 | sort -z
 }
 
 pick_wallpaper() {

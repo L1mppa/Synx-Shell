@@ -1,6 +1,6 @@
 # Wallpaper credits
 
-Wallhaven source pages and creator credits:
+Wallhaven source pages:
 
 - [wallhaven-216o5y](https://wallhaven.cc/w/216o5y)
 - [wallhaven-5ypy88](https://wallhaven.cc/w/5ypy88)

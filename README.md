@@ -12,9 +12,10 @@ checkout at `~/.local/share/synx-shell/repo` for updates and deployment.
 
 ## Compatibility and test status
 
-Arch Linux is the only distribution tested so far. Debian/Ubuntu, Fedora,
+Arch Linux is the only distribution tested so far, on a single monitor. Debian/Ubuntu, Fedora,
 openSUSE, Void Linux, and Alpine Linux are untested; package availability and
-desktop integration may differ on those systems.
+desktop integration may differ on those systems. Picom 12 or newer is required
+for the bundled window-rule syntax.
 
 The tested machine is an Intel NUC with a Core i3-4010U, integrated Intel HD
 Graphics 4400, and 8 GB of RAM (7.46 GiB available to Linux). In the included
@@ -25,20 +26,20 @@ desktop snapshot, btop reports 1.14 GiB used and 6.31 GiB available.
 
 ### Wallpaper picker
 
-![Synx Shell wallpaper picker with an image preview](screenshots/2026-10-08_17-17.png)
+![Synx Shell wallpaper picker with an image preview](screenshots/wallfinder.png)
 
 ### Desktop
 
-![Synx Shell desktop with the selected wallpaper](screenshots/2026-10-08_17-17_1.png)
+![Synx Shell desktop with the selected wallpaper](screenshots/desktop.png)
 
-![Synx Shell desktop with Alacritty and btop open](screenshots/2026-10-08_17-16.png)
+![Synx Shell desktop with Alacritty and btop open](screenshots/btop.png)
 
 ## Install
 
 Install Synx Shell directly from its public GitHub repository:
 
 ```sh
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/L1mppa/Synx-Shell/v0.1.5/install/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/L1mppa/Synx-Shell/v0.1.6/install/install.sh)"
 ```
 
 The installer downloads the public source archive without requiring a GitHub
@@ -56,13 +57,13 @@ builds `yay` if neither helper is installed and stops with a clear message if
 that build fails. The Arch package step runs a full `pacman -Syu` transaction,
 so it may upgrade existing system packages; review and confirm pacman's
 transaction.
-It installs an X server, `xinit`, Iosevka Nerd Font Mono, Terminess Nerd
+It installs an X server, `xinit`, Iosevka Nerd Font Mono, and Terminess Nerd
 Font Mono. Noto CJK fonts are offered separately as an optional package because they are large. Pacman presents its normal transaction confirmation before installing packages. On Debian/Ubuntu and Fedora, packages install one at a time
 so an unavailable package (such as Alacritty on an older release) is reported
 and does not stop the rest. Nerd Font variants may need manual installation on
 non-Arch systems, so some Polybar glyphs may be missing.
 Polybar uses fontconfig fallback when a named Nerd Font is unavailable. The
-If installed, the optional Noto CJK font provides fallback glyphs for CJK media titles; otherwise those glyphs may be missing.
+optional Noto CJK font provides fallback glyphs for CJK media titles when installed.
 Deployment includes an `~/.xinitrc` that starts bspwm, so after installing the
 X server and xinit you can launch from a TTY with `startx`. The deployed
 `.xinitrc` is executable and starts bspwm directly.
@@ -87,8 +88,6 @@ back to its original location. Backups preserve paths such as
 4. Deploy Synx Shell configuration.
 
 ## Wallpaper picker and colors
-
-Picom 12 or newer is required for the bundled window-rule syntax.
 
 Launch the picker with **Super + W**. In an X11 terminal, `ueberzugpp` draws a
 sharp image preview. If it is unavailable, `chafa` provides a terminal preview;
@@ -131,7 +130,6 @@ The main modifier is **Super** (usually the Windows key).
 | `Super + Shift + V` | Open the Greenclip clipboard menu |
 | `Super + S` | Open the Rofi power menu |
 | `Super + B` | Open Bluetooth controls |
-| `Super + N` | Send a test notification |
 | `Super + Esc` | Reload sxhkd keybindings |
 
 ### Window and desktop control
