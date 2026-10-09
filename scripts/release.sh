@@ -20,6 +20,10 @@ if [[ -z "$installer_tag" || "$installer_tag" != "$readme_tag" ]]; then
     echo 'README and installer release tags are missing or do not match.' >&2
     exit 1
 fi
+if [[ "$installer_tag" == "$new_tag" ]]; then
+    printf 'README and installer pins already match %s.\n' "$new_tag"
+    exit 0
+fi
 
 sed -i "s/$installer_tag/$new_tag/g" "$INSTALLER" "$README"
 printf 'Updated README and installer pins: %s -> %s\n' "$installer_tag" "$new_tag"
