@@ -42,7 +42,7 @@ case "${1:-}" in
             options+="$(player_icon "$player")"$'\t'"$player"$'\n'
         done
         options+=$'󰈆\tExit\n'
-        choice="$(printf '%s' "$options" | rofi -dmenu -i -p 'Choose Player' -location 0 -hide-scrollbar -line-padding 4 -padding 20 -display-columns 2)" || exit 0
+        choice="$(printf '%s' "$options" | rofi -dmenu -i -p 'Choose Player' -location 0 -hide-scrollbar -display-columns 2)" || exit 0
         choice="${choice#*$'\t'}"
         if [[ "$choice" == Exit || -z "$choice" ]]; then
             exit 0

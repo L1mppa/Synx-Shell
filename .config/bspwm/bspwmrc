@@ -2,9 +2,19 @@
 
 pgrep -x sxhkd > /dev/null || sxhkd &
 
-desktop_names='1 2 3 4 5 6 7 8 9 10'
+# Give each monitor a unique block of ten desktop numbers.
+monitor_index=0
 bspc query -M | while IFS= read -r monitor; do
-    # bspc expects each desktop name as a separate argument.
+    monitor_index=$((monitor_index + 1))
+    desktop_names=''
+    desktop_number=$(((monitor_index - 1) * 10 + 1))
+    count=0
+    while [ "$count" -lt 10 ]; do
+        desktop_names="$desktop_names $desktop_number"
+        desktop_number=$((desktop_number + 1))
+        count=$((count + 1))
+    done
+    # Intentional word splitting supplies one desktop name per argument.
     # shellcheck disable=SC2086
     bspc monitor "$monitor" -d $desktop_names
 done
@@ -24,5 +34,4 @@ bspc config gapless_monocle      false
 bspc rule -a Wallfinder state=floating center=on
 
 # Autostart Script
- 
 bash "$HOME/.config/bspwm/autostart" &

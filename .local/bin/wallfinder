@@ -47,6 +47,7 @@ find_wallpapers() {
 }
 
 pick_wallpaper() {
+    trap close_preview EXIT
     local result=0 primary outline disabled runtime_dir pid_file pid socket
     primary="$(theme_color primary)"
     outline="$(theme_color outline)"
