@@ -12,7 +12,7 @@ checkout at `~/.local/share/synx-shell/repo` for updates and deployment.
 
 ## Compatibility and test status
 
-Arch Linux is the only distribution tested so far, on a single monitor. Debian/Ubuntu, Fedora,
+Synx Shell currently targets single-monitor setups. Arch Linux is the only distribution tested so far; Debian/Ubuntu, Fedora,
 openSUSE, Void Linux, and Alpine Linux are untested; package availability and
 desktop integration may differ on those systems. Picom 12 or newer is required
 for the bundled window-rule syntax.
