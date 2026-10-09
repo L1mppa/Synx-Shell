@@ -26,13 +26,13 @@ desktop snapshot, btop reports 1.14 GiB used and 6.31 GiB available.
 
 ### Wallpaper picker
 
-![Synx Shell wallpaper picker with an image preview](screenshots/wallfinder.png)
+![Synx Shell wallpaper picker with an image preview](screenshots/wallfinder.svg)
 
 ### Desktop
 
-![Synx Shell desktop with the selected wallpaper](screenshots/desktop.png)
+![Synx Shell desktop with the selected wallpaper](screenshots/desktop.svg)
 
-![Synx Shell desktop with Alacritty and btop open](screenshots/btop.png)
+![Synx Shell desktop with Alacritty and btop open](screenshots/btop.svg)
 
 ## Install
 
