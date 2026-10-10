@@ -91,7 +91,7 @@ case "$manager" in
     pacman)
         cjk_package=noto-fonts-cjk
         repo_packages=(bash git base-devel bspwm sxhkd alacritty feh picom dunst polybar rofi fastfetch fzf chafa ueberzugpp libnotify playerctl pamixer flameshot matugen python iproute2 xorg-server xorg-xinit xorg-setxkbmap xclip xdotool ttf-iosevka-nerd ttf-terminus-nerd iw bluez bluez-utils pipewire-pulse papirus-icon-theme noto-fonts dbus)
-        aur_packages=(zscroll greenclip bemoji rofi-power-menu dmenu-bluetooth)
+        aur_packages=(zscroll greenclip bemoji rofi-power-menu)
 
         helper=''
         if command -v yay >/dev/null 2>&1; then
@@ -125,23 +125,23 @@ case "$manager" in
         cjk_package=fonts-noto-cjk
         as_root apt-get update
         install_packages bash git build-essential iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-bin playerctl pamixer flameshot python3 xorg xinit x11-xkb-utils xclip xdotool fonts-iosevka fonts-terminus iw bluez bluez-tools pipewire-pulse papirus-icon-theme fonts-noto-core dbus-x11
-        echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu, and dmenu-bluetooth may need manual installation on Debian/Ubuntu.'
+        echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu may need manual installation on Debian/Ubuntu.'
         ;;
     dnf)
         cjk_package=google-noto-sans-cjk-fonts
         install_packages bash git make gcc iproute bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-x11-server-Xorg xorg-x11-xinit xorg-x11-xkb-utils xclip xdotool iosevka-fonts terminus-fonts iw bluez bluez-tools pipewire-pulseaudio papirus-icon-theme google-noto-sans-mono-fonts dbus-x11
-        echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu, and dmenu-bluetooth may need manual installation on Fedora.'
+        echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu may need manual installation on Fedora.'
         ;;
     zypper)
         cjk_package=google-noto-sans-cjk-fonts
         install_packages bash git make gcc iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify-tools playerctl pamixer flameshot python3 xorg-x11-server xinit setxkbmap xclip xdotool iosevka-fonts terminus-fonts iw bluez bluez-tools pipewire-pulseaudio papirus-icon-theme google-noto-sans-mono-fonts dbus-1-x11
-        echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu, and dmenu-bluetooth may need manual installation on openSUSE.'
+        echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu may need manual installation on openSUSE.'
         ;;
     xbps)
         cjk_package=noto-fonts-cjk
         as_root xbps-install -S
         install_packages bash git base-devel iproute2 bspwm sxhkd alacritty feh picom dunst polybar rofi fzf chafa libnotify playerctl pamixer flameshot python3 xorg-server xinit setxkbmap xclip xdotool iw bluez bluez-utils pipewire-pulse papirus-icon-theme noto-fonts-ttf dbus-x11
-        echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu, and dmenu-bluetooth may need manual installation on Void.'
+        echo 'Matugen, Fastfetch, ueberzugpp, zscroll, Greenclip, bemoji, rofi-power-menu may need manual installation on Void.'
         ;;
     apk)
         cjk_package=font-noto-cjk
@@ -175,5 +175,5 @@ case "$answer" in
         esac
         ;;
 esac
-printf 'BlueZ is installed for the optional dmenu-bluetooth shortcut; bluetooth.service is not enabled by this installer.\n'
+printf 'BlueZ is installed for the Bluetooth menu. It starts bluetooth.service on demand through Polkit.\n'
 echo "Dependency installation finished using $manager."

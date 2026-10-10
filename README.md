@@ -181,7 +181,6 @@ The X11 Bemoji shortcut sets `BEMOJI_PICKER_CMD=rofi`,
 `BEMOJI_CLIP_CMD=xclip`, and `BEMOJI_TYPE_CMD=xdotool`. This matches bemoji's
 documented X11 tools; install `xclip` for clipboard copying and `xdotool` for
 typing. Some optional shortcuts also use Flameshot, Greenclip,
-`rofi-power-menu`, and `dmenu-bluetooth`. NetworkManager is an optional
-network manager and may conflict with iwd or systemd-networkd. BlueZ is needed
-for the optional Bluetooth shortcut; the installer does not enable
-`bluetooth.service`.
+and `rofi-power-menu`. NetworkManager is an optional network manager and may
+conflict with iwd or systemd-networkd. The Bluetooth menu uses BlueZ and Rofi,
+and starts `bluetooth.service` on demand through Polkit.

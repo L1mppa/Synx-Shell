@@ -7,7 +7,7 @@ notify_error() {
     fi
 }
 
-for cmd in bluetoothctl systemctl dmenu-bluetooth; do
+for cmd in bluetoothctl systemctl pkexec rofi; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
         notify_error "Required command '$cmd' is not installed."
         exit 1
@@ -15,7 +15,7 @@ for cmd in bluetoothctl systemctl dmenu-bluetooth; do
 done
 
 if ! systemctl is-active --quiet bluetooth.service; then
-    if ! command -v pkexec >/dev/null 2>&1 || ! pkexec systemctl start bluetooth.service; then
+    if ! pkexec systemctl start bluetooth.service; then
         notify_error "Could not start bluetooth.service. Check polkit permissions, then try again."
         exit 1
     fi
@@ -28,11 +28,23 @@ if ! bluetoothctl show 2>/dev/null | grep -Fq 'Powered: yes'; then
     fi
 fi
 
-bluetoothctl scan on >/dev/null 2>&1 &
-scan_pid=$!
+# Keep one bluetoothctl client alive for the whole menu. BlueZ ties discovery
+# to its client connection, so a one-shot "bluetoothctl scan on" is unreliable.
+coproc BT_SCAN { bluetoothctl 2>/dev/null >/dev/null; }
+scan_pid=${BT_SCAN_PID:-}
+scan_input=${BT_SCAN[1]:-}
+if [[ -z "$scan_pid" || -z "$scan_input" ]]; then
+    notify_error "Could not start the Bluetooth control connection."
+    exit 1
+fi
+if ! printf 'scan on\n' >&"$scan_input"; then
+    notify_error "Could not start Bluetooth discovery."
+    exit 1
+fi
 
 cleanup() {
-    bluetoothctl scan off >/dev/null 2>&1 || true
+    printf 'scan off\nquit\n' >&"$scan_input" 2>/dev/null || true
+    exec {scan_input}>&- 2>/dev/null || true
     kill "$scan_pid" >/dev/null 2>&1 || true
     wait "$scan_pid" 2>/dev/null || true
 }
@@ -40,11 +52,77 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-# Give nearby devices time to appear before dmenu-bluetooth builds its list.
-sleep 5
-if ! bluetoothctl show 2>/dev/null | grep -Fq 'Discovering: yes'; then
-    notify_error "Bluetooth did not start scanning. Check the adapter and bluetooth.service."
-    exit 1
-fi
+device_rows() {
+    declare -A seen=()
+    printf 'Scanning… new devices will appear here\n'
+    while kill -0 "$scan_pid" 2>/dev/null; do
+        while IFS=' ' read -r record address name; do
+            [[ "$record" == Device && -n "$address" ]] || continue
+            [[ -n "$name" ]] || name="Unknown device"
+            if [[ -z ${seen[$address]+present} ]]; then
+                seen[$address]=1
+                printf '%s  —  %s\n' "$address" "$name"
+            fi
+        done < <(bluetoothctl devices 2>/dev/null)
+        sleep 1
+    done
+}
 
-DMENU_BLUETOOTH_LAUNCHER=rofi dmenu-bluetooth
+manage_device() {
+    local address="$1" name="$2" info action
+    local -a choices=()
+    info="$(bluetoothctl info "$address" 2>/dev/null || true)"
+    if grep -Fq 'Connected: yes' <<<"$info"; then
+        choices+=("Disconnect")
+    elif grep -Fq 'Paired: yes' <<<"$info"; then
+        choices+=("Connect")
+    else
+        choices+=("Pair and connect")
+    fi
+    if grep -Fq 'Trusted: yes' <<<"$info"; then
+        choices+=("Remove trust")
+    else
+        choices+=("Trust")
+    fi
+    grep -Fq 'Paired: yes' <<<"$info" && choices+=("Forget device")
+    choices+=("Back")
+
+    action="$(printf '%s\n' "${choices[@]}" | rofi -dmenu -i -p "$name" -mesg "$address")" || return 0
+    case "$action" in
+        "Pair and connect")
+            if bluetoothctl pair "$address" && bluetoothctl trust "$address"; then
+                bluetoothctl connect "$address" || notify_error "Could not connect to $name."
+            else
+                notify_error "Could not pair with $name."
+            fi
+            ;;
+        Connect)
+            bluetoothctl connect "$address" || notify_error "Could not connect to $name."
+            ;;
+        Disconnect)
+            bluetoothctl disconnect "$address" || notify_error "Could not disconnect $name."
+            ;;
+        Trust)
+            bluetoothctl trust "$address" || notify_error "Could not trust $name."
+            ;;
+        "Remove trust")
+            bluetoothctl untrust "$address" || notify_error "Could not remove trust for $name."
+            ;;
+        "Forget device")
+            bluetoothctl remove "$address" || notify_error "Could not forget $name."
+            ;;
+    esac
+}
+
+while :; do
+    selected="$(device_rows | rofi -dmenu -i -p 'Bluetooth' \
+        -mesg 'Scanning live — newly discovered devices appear automatically' -no-custom)"
+    status=$?
+    [[ $status -eq 0 && -n "$selected" ]] || break
+    [[ "$selected" == Scanning…* ]] && continue
+
+    address="${selected%% *}"
+    name="${selected#*—  }"
+    [[ "$address" =~ ^([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}$ ]] || continue
+    manage_device "$address" "$name"
+done
