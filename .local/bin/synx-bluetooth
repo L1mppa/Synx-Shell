@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -u
+
+notify_error() {
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send "Bluetooth" "$1"
+    fi
+}
+
+for cmd in bluetoothctl systemctl dmenu-bluetooth; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        notify_error "Required command '$cmd' is not installed."
+        exit 1
+    fi
+done
+
+if ! systemctl is-active --quiet bluetooth.service; then
+    if ! command -v pkexec >/dev/null 2>&1 || ! pkexec systemctl start bluetooth.service; then
+        notify_error "Could not start bluetooth.service. Check polkit permissions, then try again."
+        exit 1
+    fi
+fi
+
+if ! bluetoothctl show 2>/dev/null | grep -Fq 'Powered: yes'; then
+    if ! bluetoothctl power on >/dev/null 2>&1; then
+        notify_error "Could not power on the Bluetooth adapter. Check that it is not blocked by rfkill."
+        exit 1
+    fi
+fi
+
+bluetoothctl scan on >/dev/null 2>&1 &
+scan_pid=$!
+
+cleanup() {
+    bluetoothctl scan off >/dev/null 2>&1 || true
+    kill "$scan_pid" >/dev/null 2>&1 || true
+    wait "$scan_pid" 2>/dev/null || true
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+# Give nearby devices time to appear before dmenu-bluetooth builds its list.
+sleep 5
+if ! bluetoothctl show 2>/dev/null | grep -Fq 'Discovering: yes'; then
+    notify_error "Bluetooth did not start scanning. Check the adapter and bluetooth.service."
+    exit 1
+fi
+
+DMENU_BLUETOOTH_LAUNCHER=rofi dmenu-bluetooth

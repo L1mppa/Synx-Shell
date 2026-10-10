@@ -84,7 +84,7 @@ super + {s}
 
 # bluetooth
 super + {b}
-	DMENU_BLUETOOTH_LAUNCHER=rofi dmenu-bluetooth
+	bash "$HOME/.local/bin/synx-bluetooth"
 
 # media keys
 XF86AudioPlay
