@@ -7,7 +7,7 @@ notify_error() {
     fi
 }
 
-for cmd in bluetoothctl systemctl pkexec rofi; do
+for cmd in bluetoothctl systemctl rofi; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
         notify_error "Required command '$cmd' is not installed."
         exit 1
@@ -15,7 +15,7 @@ for cmd in bluetoothctl systemctl pkexec rofi; do
 done
 
 if ! systemctl is-active --quiet bluetooth.service; then
-    if ! pkexec systemctl start bluetooth.service; then
+    if ! command -v pkexec >/dev/null 2>&1 || ! pkexec systemctl start bluetooth.service; then
         notify_error "Could not start bluetooth.service. Check polkit permissions, then try again."
         exit 1
     fi
