@@ -53,19 +53,27 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 device_rows() {
-    declare -A seen=()
-    printf 'Scanning… new devices will appear here\n'
-    while kill -0 "$scan_pid" 2>/dev/null; do
-        while IFS=' ' read -r record address name; do
+    local attempt record address name
+    local -a rows=()
+
+    # Let discovery populate BlueZ's cache briefly, then give Rofi a finite
+    # input stream. An open-ended stream can keep the menu from opening.
+    for attempt in {1..4}; do
+        rows=()
+        while read -r record address name; do
             [[ "$record" == Device && -n "$address" ]] || continue
             [[ -n "$name" ]] || name="Unknown device"
-            if [[ -z ${seen[$address]+present} ]]; then
-                seen[$address]=1
-                printf '%s  —  %s\n' "$address" "$name"
-            fi
+            rows+=("$address  —  $name")
         done < <(bluetoothctl devices 2>/dev/null)
+        ((${#rows[@]})) && break
         sleep 1
     done
+
+    if ((${#rows[@]})); then
+        printf '%s\n' "${rows[@]}"
+    else
+        printf '%s\n' 'No devices found yet (scanning is active)'
+    fi
 }
 
 manage_device() {
@@ -116,10 +124,10 @@ manage_device() {
 
 while :; do
     selected="$(device_rows | rofi -dmenu -i -p 'Bluetooth' \
-        -mesg 'Scanning live — newly discovered devices appear automatically' -no-custom)"
+        -mesg 'Scanning is active while this menu is open' -no-custom)"
     status=$?
     [[ $status -eq 0 && -n "$selected" ]] || break
-    [[ "$selected" == Scanning…* ]] && continue
+    [[ "$selected" == 'No devices found yet '* ]] && continue
 
     address="${selected%% *}"
     name="${selected#*—  }"
